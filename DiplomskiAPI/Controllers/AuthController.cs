@@ -1,6 +1,5 @@
-﻿using DiplomskiAPI.Data;
-using DiplomskiAPI.DTOs;
-using DiplomskiAPI.Models;
+﻿using DiplomskiAPI.DTOs;
+using DiplomskiAPI.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DiplomskiAPI.Controllers
@@ -9,77 +8,43 @@ namespace DiplomskiAPI.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IAuthService _authService;
 
-        public AuthController(ApplicationDbContext context)
+        public AuthController(IAuthService authService)
         {
-            _context = context;
+            _authService = authService;
         }
 
         [HttpPost("register")]
         public IActionResult Register(RegisterDto request)
         {
-            var existingUser = _context.Users
-                .FirstOrDefault(u => u.Email == request.Email);
-
-            if (existingUser != null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Korisnik s ovom email adresom već postoji.");
+                return BadRequest(ModelState);
             }
-
-            var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-
-            var user = new User
+            try
             {
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Email = request.Email,
-                PasswordHash = passwordHash,
-                Phone = request.Phone,
-                Address = request.Address,
-                Role = "USER",
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.Users.Add(user);
-            _context.SaveChanges();
-
-            return Ok("Registracija uspješna.");
+                var result = _authService.Register(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost("login")]
         public IActionResult Login(LoginDto request)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Email == request.Email);
-
-            if (user == null)
+            try
             {
-                return BadRequest("Neispravan email ili lozinka.");
+                var result = _authService.Login(request);
+                return Ok(result);
             }
-
-            if (!user.IsActive)
+            catch (Exception ex)
             {
-                return BadRequest("Korisnički račun je deaktiviran.");
+                return BadRequest(ex.Message);
             }
-
-            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
-
-            if (!isPasswordValid)
-            {
-                return BadRequest("Neispravan email ili lozinka.");
-            }
-
-            return Ok(new
-            {
-                id = user.Id,
-                firstName = user.FirstName,
-                lastName = user.LastName,
-                fullName = user.FirstName + " " + user.LastName,
-                email = user.Email,
-                role = user.Role
-            });
         }
-
     }
 }
