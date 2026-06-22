@@ -13,5 +13,6 @@ namespace DiplomskiAPI.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<ServiceRequest> ServiceRequests { get; set; }
+        public DbSet<WorkOrder> WorkOrders { get; set; }
     }
 }
