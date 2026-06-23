@@ -16,6 +16,7 @@
             android:id="@+id/cardLogo"
             android:layout_width="72dp"
             android:layout_height="72dp"
+            android:layout_marginTop="25dp"
             app:cardBackgroundColor="@color/primary_burgundy"
             app:cardCornerRadius="36dp"
             app:cardElevation="0dp"
