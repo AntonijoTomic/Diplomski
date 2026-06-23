@@ -14,5 +14,8 @@ namespace DiplomskiAPI.Interfaces
         WorkOrder? UpdateStatus(int id, string status);
 
         bool Delete(int id);
+
+        List<WorkOrder> GetByVehicleId(int vehicleId);
+        List<WorkOrder> GetByUserId(int userId);
     }
 }

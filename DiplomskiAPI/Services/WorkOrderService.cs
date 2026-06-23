@@ -85,5 +85,19 @@ namespace DiplomskiAPI.Services
 
             return true;
         }
+
+        public List<WorkOrder> GetByVehicleId(int vehicleId)
+        {
+            return _context.WorkOrders
+                .Where(w => w.VehicleId == vehicleId)
+                .ToList();
+        }
+
+        public List<WorkOrder> GetByUserId(int userId)
+        {
+            return _context.WorkOrders
+                .Where(w => w.UserId == userId)
+                .ToList();
+        }
     }
 }

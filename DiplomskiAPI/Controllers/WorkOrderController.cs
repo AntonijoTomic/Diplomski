@@ -66,5 +66,17 @@ namespace DiplomskiAPI.Controllers
 
             return Ok("Radni nalog je uspješno obrisan.");
         }
+
+        [HttpGet("vehicle/{vehicleId}")]
+        public IActionResult GetByVehicleId(int vehicleId)
+        {
+            return Ok(_workOrderService.GetByVehicleId(vehicleId));
+        }
+
+        [HttpGet("user/{userId}")]
+        public IActionResult GetByUserId(int userId)
+        {
+            return Ok(_workOrderService.GetByUserId(userId));
+        }
     }
 }

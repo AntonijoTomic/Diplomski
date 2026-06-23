@@ -81,5 +81,11 @@ namespace DiplomskiAPI.Services
 
             return true;
         }
+        public List<ServiceRequest> GetByVehicleId(int vehicleId)
+        {
+            return _context.ServiceRequests
+                .Where(sr => sr.VehicleId == vehicleId)
+                .ToList();
+        }
     }
 }

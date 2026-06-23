@@ -11,5 +11,6 @@ namespace DiplomskiAPI.Interfaces
         ServiceRequest Create(ServiceRequestCreateDto request);
         ServiceRequest? UpdateStatus(int id, string status);
         bool Delete(int id);
+        List<ServiceRequest> GetByVehicleId(int vehicleId);
     }
 }

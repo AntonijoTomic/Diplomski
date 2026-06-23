@@ -72,5 +72,12 @@ namespace DiplomskiAPI.Controllers
 
             return Ok("Servisni zahtjev je uspješno obrisan.");
         }
+
+        [HttpGet("vehicle/{vehicleId}")]
+        public IActionResult GetByVehicleId(int vehicleId)
+        {
+            return Ok(_serviceRequestService.GetByVehicleId(vehicleId));
+        }
     }
+
 }
