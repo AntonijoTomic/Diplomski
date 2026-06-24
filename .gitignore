@@ -1,3 +1,11 @@
+.gradle/
+build/
+local.properties
+.idea/workspace.xml
+.idea/caches/
 .vs/
-bin/
-obj/
+DiplomskiAPI/bin/
+DiplomskiAPI/obj/
+DiplomskiAndroid/.gradle/
+DiplomskiAndroid/build/
+.vs/

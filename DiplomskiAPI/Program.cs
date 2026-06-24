@@ -32,4 +32,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run("http://0.0.0.0:5136");
+app.Run("http://0.0.0.0:5136"); //bez adrese se ne mogu spojiti preko uredaja

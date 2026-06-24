@@ -1,5 +1,5 @@
 package com.example.diplomskiandroid.activities;
-
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -12,7 +12,7 @@ import com.example.diplomskiandroid.models.LoginRequest;
 import com.example.diplomskiandroid.models.LoginResponse;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
-
+import com.example.diplomskiandroid.MainActivity;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -56,9 +56,17 @@ public class LoginActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     LoginResponse user = response.body();
 
-                    Toast.makeText(LoginActivity.this,
-                            "Dobrodošli, " + user.getFullName(),
-                            Toast.LENGTH_LONG).show();
+                    getSharedPreferences("USER_SESSION", MODE_PRIVATE)
+                            .edit()
+                            .putInt("userId", user.getId())
+                            .putString("fullName", user.getFullName())
+                            .putString("email", user.getEmail())
+                            .putString("role", user.getRole())
+                            .apply();
+
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    startActivity(intent);
+                    finish();
                 } else {
                     Toast.makeText(LoginActivity.this,
                             "Neispravan email ili lozinka.",

@@ -62,7 +62,7 @@ namespace DiplomskiAPI.Services
             {
                 return null;
             }
-
+            vehicle.UserId = request.UserId;
             vehicle.Brand = request.Brand;
             vehicle.Model = request.Model;
             vehicle.Year = request.Year;

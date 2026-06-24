@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/round_home_24"
+        android:title="Početna" />
+
+    <item
+        android:id="@+id/nav_vehicles"
+        android:icon="@drawable/baseline_directions_car_filled_24"
+        android:title="Vozila" />
+
+    <item
+        android:id="@+id/nav_requests"
+        android:icon="@drawable/round_build_24"
+        android:title="Zahtjevi" />
+
+    <item
+        android:id="@+id/nav_profile"
+        android:icon="@drawable/outline_for_you_24"
+        android:title="Profil" />
+
+</menu>
