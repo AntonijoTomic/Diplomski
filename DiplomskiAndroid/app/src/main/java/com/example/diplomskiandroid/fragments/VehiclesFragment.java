@@ -1,6 +1,7 @@
 package com.example.diplomskiandroid.fragments;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -14,10 +15,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.diplomskiandroid.R;
+import com.example.diplomskiandroid.activities.AddVehicleActivity;
 import com.example.diplomskiandroid.adapters.VehicleAdapter;
 import com.example.diplomskiandroid.api.ApiClient;
 import com.example.diplomskiandroid.api.VehicleApi;
 import com.example.diplomskiandroid.models.Vehicle;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
@@ -29,6 +32,7 @@ public class VehiclesFragment extends Fragment {
 
     private TextView txtVehicleCount;
     private RecyclerView rvVehicles;
+    private FloatingActionButton btnAddVehicle;
     private VehicleApi vehicleApi;
 
     public VehiclesFragment() {
@@ -42,14 +46,26 @@ public class VehiclesFragment extends Fragment {
 
         txtVehicleCount = view.findViewById(R.id.txtVehicleCount);
         rvVehicles = view.findViewById(R.id.rvVehicles);
+        btnAddVehicle = view.findViewById(R.id.btnAddVehicle);
 
         rvVehicles.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         vehicleApi = ApiClient.getClient().create(VehicleApi.class);
 
+        btnAddVehicle.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), AddVehicleActivity.class);
+            startActivity(intent);
+        });
+
         loadVehicles();
 
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadVehicles();
     }
 
     private void loadVehicles() {
