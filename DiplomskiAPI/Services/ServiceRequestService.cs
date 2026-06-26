@@ -19,10 +19,29 @@ namespace DiplomskiAPI.Services
             return _context.ServiceRequests.ToList();
         }
 
-        public List<ServiceRequest> GetByUserId(int userId)
+        public List<ServiceRequestDto> GetByUserId(int userId)
         {
             return _context.ServiceRequests
                 .Where(sr => sr.UserId == userId)
+                .Join(
+                    _context.Vehicles,
+                    sr => sr.VehicleId,
+                    v => v.Id,
+                    (sr, v) => new ServiceRequestDto
+                    {
+                        Id = sr.Id,
+                        VehicleId = sr.VehicleId,
+
+                        VehicleName = v.Brand + " " + v.Model,
+                        LicensePlate = v.LicensePlate,
+
+                        ProblemDescription = sr.ProblemDescription,
+                        ServiceType = sr.ServiceType,
+                        Urgency = sr.Urgency,
+                        Status = sr.Status,
+                        CreatedAt = sr.CreatedAt
+                    })
+                .OrderByDescending(x => x.CreatedAt)
                 .ToList();
         }
 

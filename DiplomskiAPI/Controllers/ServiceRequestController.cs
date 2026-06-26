@@ -1,9 +1,11 @@
 ﻿using DiplomskiAPI.DTOs;
 using DiplomskiAPI.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DiplomskiAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ServiceRequestsController : ControllerBase

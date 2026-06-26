@@ -9,3 +9,5 @@ DiplomskiAPI/obj/
 DiplomskiAndroid/.gradle/
 DiplomskiAndroid/build/
 .vs/
+.idea/
+*.iml
