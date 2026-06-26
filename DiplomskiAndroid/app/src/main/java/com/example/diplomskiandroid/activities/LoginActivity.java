@@ -29,16 +29,25 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
+        checkExistingSession();
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
 
-        authApi = ApiClient.getClient().create(AuthApi.class);
+        authApi = ApiClient.getClient(this).create(AuthApi.class);
 
         btnLogin.setOnClickListener(v -> loginUser());
     }
+    private void checkExistingSession() {
+        String token = getSharedPreferences("USER_SESSION", MODE_PRIVATE)
+                .getString("token", "");
 
+        if (!token.isEmpty()) {
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        }
+    }
     private void loginUser() {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
@@ -62,6 +71,8 @@ public class LoginActivity extends AppCompatActivity {
                             .putString("fullName", user.getFullName())
                             .putString("email", user.getEmail())
                             .putString("role", user.getRole())
+                            .putString("token", user.getToken())
+                            .putString("expiresAt", user.getExpiresAt())
                             .apply();
 
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);

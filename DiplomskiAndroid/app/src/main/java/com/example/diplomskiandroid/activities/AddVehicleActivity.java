@@ -1,7 +1,10 @@
 package com.example.diplomskiandroid.activities;
 
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -21,7 +24,7 @@ import com.example.diplomskiandroid.models.Vehicle;
 import com.example.diplomskiandroid.models.VehicleCreateRequest;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
-
+import androidx.appcompat.app.AlertDialog;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -61,14 +64,30 @@ public class AddVehicleActivity extends AppCompatActivity {
             return insets;
         });
 
-        vehicleApi = ApiClient.getClient().create(VehicleApi.class);
+        vehicleApi = ApiClient.getClient(this).create(VehicleApi.class);
 
         setupFuelDropdown();
         etRegistrationDate.setOnClickListener(v -> showDatePicker());
         etRegistrationDate.setFocusable(false);
         btnSaveVehicle.setOnClickListener(v -> saveVehicle());
     }
+    private void showSuccessDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_success, null);
+        builder.setView(dialogView);
+        builder.setCancelable(false);
 
+        AlertDialog dialog = builder.create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+        dialogView.findViewById(R.id.btnOk).setOnClickListener(v -> {
+            dialog.dismiss();
+            finish();
+        });
+        dialog.show();
+    }
     private void showDatePicker() {
         Calendar calendar = Calendar.getInstance();
 
@@ -92,7 +111,7 @@ public class AddVehicleActivity extends AppCompatActivity {
                 month,
                 day
         );
-
+        dialog.getDatePicker().setMaxDate(System.currentTimeMillis());
         dialog.show();
     }
 
@@ -181,11 +200,7 @@ public class AddVehicleActivity extends AppCompatActivity {
                 btnSaveVehicle.setEnabled(true);
 
                 if (response.isSuccessful()) {
-                    Toast.makeText(AddVehicleActivity.this,
-                            "Vozilo je uspješno dodano.",
-                            Toast.LENGTH_SHORT).show();
-
-                    finish();
+                    showSuccessDialog();
                 } else {
                     Toast.makeText(AddVehicleActivity.this,
                             response.code(),

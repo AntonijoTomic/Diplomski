@@ -50,7 +50,7 @@ public class VehiclesFragment extends Fragment {
 
         rvVehicles.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        vehicleApi = ApiClient.getClient().create(VehicleApi.class);
+        vehicleApi = ApiClient.getClient(requireContext()).create(VehicleApi.class);
 
         btnAddVehicle.setOnClickListener(v -> {
             Intent intent = new Intent(requireContext(), AddVehicleActivity.class);

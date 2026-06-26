@@ -1,22 +1,27 @@
-﻿using DiplomskiAPI.Data;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using DiplomskiAPI.Data;
 using DiplomskiAPI.DTOs;
 using DiplomskiAPI.Interfaces;
 using DiplomskiAPI.Models;
+using Microsoft.IdentityModel.Tokens;
 
 namespace DiplomskiAPI.Services
 {
     public class AuthService : IAuthService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public AuthService(ApplicationDbContext context)
+        public AuthService(ApplicationDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         public RegisterResponseDto Register(RegisterDto request)
         {
-
             var existingUser = _context.Users
                 .FirstOrDefault(u => u.Email == request.Email);
 
@@ -24,7 +29,6 @@ namespace DiplomskiAPI.Services
             {
                 throw new Exception("Korisnik s ovom email adresom već postoji.");
             }
-         
 
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
@@ -71,6 +75,12 @@ namespace DiplomskiAPI.Services
                 throw new Exception("Neispravan email ili lozinka.");
             }
 
+            var expiresAt = DateTime.UtcNow.AddMinutes(
+                Convert.ToDouble(_configuration["Jwt:ExpiresInMinutes"])
+            );
+
+            var token = GenerateJwtToken(user, expiresAt);
+
             return new LoginResponseDto
             {
                 Id = user.Id,
@@ -78,8 +88,40 @@ namespace DiplomskiAPI.Services
                 LastName = user.LastName,
                 FullName = user.FirstName + " " + user.LastName,
                 Email = user.Email,
-                Role = user.Role
+                Role = user.Role,
+                Token = token,
+                ExpiresAt = expiresAt
             };
+        }
+
+        private string GenerateJwtToken(User user, DateTime expiresAt)
+        {
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!)
+            );
+
+            var credentials = new SigningCredentials(
+                key,
+                SecurityAlgorithms.HmacSha256
+            );
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim("fullName", user.FirstName + " " + user.LastName)
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: expiresAt,
+                signingCredentials: credentials
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }
