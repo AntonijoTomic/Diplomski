@@ -23,6 +23,7 @@ namespace DiplomskiAPI.Services
         {
             return _context.Vehicles
                 .Where(v => v.UserId == userId)
+                .OrderByDescending(v => v.CreatedAt)
                 .ToList();
         }
 

@@ -82,11 +82,11 @@ public class VehiclesFragment extends Fragment {
 
                     txtVehicleCount.setText(String.valueOf(vehicles.size()));
 
-                    VehicleAdapter adapter = new VehicleAdapter(vehicles);
+                    VehicleAdapter adapter = new VehicleAdapter(vehicles,() -> loadVehicles());
                     rvVehicles.setAdapter(adapter);
                 } else {
                     Toast.makeText(requireContext(),
-                            "Greška kod dohvaćanja vozila.",
+                            "Greška: " + response.code(),
                             Toast.LENGTH_SHORT).show();
                 }
             }
