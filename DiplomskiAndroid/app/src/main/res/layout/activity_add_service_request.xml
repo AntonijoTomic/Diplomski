@@ -53,6 +53,8 @@
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:boxStrokeColor="@color/primary_burgundy"
+                    app:hintTextColor="@color/primary_burgundy"
                     android:hint="Vozilo *">
 
                     <AutoCompleteTextView
@@ -69,6 +71,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
+                    app:boxStrokeColor="@color/primary_burgundy"
+                    app:hintTextColor="@color/primary_burgundy"
+                    app:boxBackgroundColor="@color/white"
                     android:hint="Vrsta servisa">
 
                     <AutoCompleteTextView
@@ -85,6 +90,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
+                    app:boxStrokeColor="@color/primary_burgundy"
+                    app:hintTextColor="@color/primary_burgundy"
                     android:hint="Hitnost">
 
                     <AutoCompleteTextView
@@ -101,6 +108,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
+                    app:boxStrokeColor="@color/primary_burgundy"
+                    app:hintTextColor="@color/primary_burgundy"
                     android:hint="Željeni datum">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -118,6 +127,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
+                    app:boxStrokeColor="@color/primary_burgundy"
+                    app:hintTextColor="@color/primary_burgundy"
                     android:hint="Opis problema *">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -135,6 +146,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
+                    app:boxStrokeColor="@color/primary_burgundy"
+                    app:hintTextColor="@color/primary_burgundy"
                     android:hint="Napomena">
 
                     <com.google.android.material.textfield.TextInputEditText

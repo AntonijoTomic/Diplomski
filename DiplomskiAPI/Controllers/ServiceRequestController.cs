@@ -80,6 +80,19 @@ namespace DiplomskiAPI.Controllers
         {
             return Ok(_serviceRequestService.GetByVehicleId(vehicleId));
         }
+
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, ServiceRequestCreateDto request)
+        {
+            var updatedRequest = _serviceRequestService.Update(id, request);
+
+            if (updatedRequest == null)
+            {
+                return NotFound("Servisni zahtjev nije pronađen.");
+            }
+
+            return Ok(updatedRequest);
+        }
     }
 
 }

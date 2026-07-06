@@ -175,7 +175,7 @@
                         android:id="@+id/etLicensePlate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="textCapCharacters"
+                                          android:inputType="textCapCharacters"
                         android:textColor="@color/text_dark"
                         android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
@@ -209,6 +209,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
+                    app:boxBackgroundColor="@color/white"
                     android:hint="Vrsta goriva *"
                     app:boxCornerRadiusTopStart="14dp"
                     app:boxCornerRadiusTopEnd="14dp"

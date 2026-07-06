@@ -10,6 +10,8 @@ public class ServiceRequest {
     private String urgency;
     private String status;
     private String createdAt;
+    private String note;
+    private String desiredDate;
 
     public int getId() { return id; }
     public int getVehicleId() { return vehicleId; }
@@ -20,4 +22,7 @@ public class ServiceRequest {
     public String getUrgency() { return urgency; }
     public String getStatus() { return status; }
     public String getCreatedAt() { return createdAt; }
+    public String getNote() {return  note; }
+
+    public String getDesiredDate() {  return desiredDate;  }
 }

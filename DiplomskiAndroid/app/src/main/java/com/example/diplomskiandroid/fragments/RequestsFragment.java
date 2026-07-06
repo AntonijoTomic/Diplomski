@@ -77,7 +77,7 @@ public class RequestsFragment extends Fragment {
                 if (response.isSuccessful() && response.body() != null) {
                     List<ServiceRequest> requests = response.body();
 
-                    ServiceRequestAdapter adapter = new ServiceRequestAdapter(requests);
+                    ServiceRequestAdapter adapter = new ServiceRequestAdapter(requests, requireContext());
                     rvServiceRequests.setAdapter(adapter);
                 } else {
                     Toast.makeText(requireContext(),

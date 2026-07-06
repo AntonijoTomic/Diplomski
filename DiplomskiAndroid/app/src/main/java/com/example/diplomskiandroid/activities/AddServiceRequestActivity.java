@@ -50,12 +50,16 @@ public class AddServiceRequestActivity extends AppCompatActivity {
     private final List<Vehicle> vehicles = new ArrayList<>();
 
     private int selectedVehicleId = 0;
-
+    private int requestId = 0;
+    private int editVehicleId = 0;
+    private boolean isEditMode = false;
+    private TextView txtAddRequestTitle;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add_service_request);
+
 
         View root = findViewById(R.id.mainScroll);
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
@@ -81,7 +85,13 @@ public class AddServiceRequestActivity extends AppCompatActivity {
         etNote = findViewById(R.id.etNote);
         btnSaveRequest = findViewById(R.id.btnSaveRequest);
 
-        btnSaveRequest.setOnClickListener(v -> saveServiceRequest());
+        btnSaveRequest.setOnClickListener(v -> {
+            if (isEditMode) {
+                updateServiceRequest();
+            } else {
+                saveServiceRequest();
+            }
+        });
 
         vehicleApi = ApiClient.getClient(this).create(VehicleApi.class);
         serviceRequestApi = ApiClient.getClient(this).create(ServiceRequestApi.class);
@@ -91,10 +101,131 @@ public class AddServiceRequestActivity extends AppCompatActivity {
         etDesiredDate.setClickable(true);
         etDesiredDate.setCursorVisible(false);
         etDesiredDate.setKeyListener(null);
+        requestId = getIntent().getIntExtra("requestId", 0);
+        isEditMode = requestId != 0;
+        txtAddRequestTitle = findViewById(R.id.txtAddRequestTitle);
 
+        if (isEditMode) {
+            txtAddRequestTitle.setText("Uredi servisni zahtjev");
+            btnSaveRequest.setText("Spremi promjene");
+            loadRequestForEdit(requestId);
+        }
         loadVehicles();
 
         setupDropdowns();
+    }
+
+    private void updateServiceRequest() {
+        String problemDescription = etProblemDescription.getText().toString().trim();
+        String serviceType = actServiceType.getText().toString().trim();
+        String urgency = actUrgency.getText().toString().trim();
+        String desiredDate = etDesiredDate.getText().toString().trim();
+        String note = etNote.getText().toString().trim();
+
+        SharedPreferences preferences =
+                getSharedPreferences("USER_SESSION", MODE_PRIVATE);
+
+        int userId = preferences.getInt("userId", 0);
+
+        if (desiredDate.isEmpty()) {
+            desiredDate = null;
+        } else if (desiredDate.length() == 10) {
+            desiredDate += "T00:00:00Z";
+        }
+
+        ServiceRequestCreateRequest request =
+                new ServiceRequestCreateRequest(
+                        userId,
+                        selectedVehicleId,
+                        problemDescription,
+                        serviceType,
+                        desiredDate,
+                        urgency,
+                        note
+                );
+
+        serviceRequestApi.updateServiceRequest(requestId, request)
+                .enqueue(new Callback<ServiceRequest>() {
+
+                    @Override
+                    public void onResponse(Call<ServiceRequest> call,
+                                           Response<ServiceRequest> response) {
+
+                        if (response.isSuccessful()) {
+
+                            showSuccessDialog(
+                                    "Servisni zahtjev je uspješno ažuriran."
+                            );
+
+                        } else {
+
+                            Toast.makeText(
+                                    AddServiceRequestActivity.this,
+                                    "Greška kod ažuriranja.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ServiceRequest> call,
+                                          Throwable t) {
+
+                        Toast.makeText(
+                                AddServiceRequestActivity.this,
+                                "Greška povezivanja.",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
+    }
+
+    private void loadRequestForEdit(int requestId) {
+
+        serviceRequestApi.getRequestById(requestId).enqueue(new Callback<ServiceRequest>() {
+
+            @Override
+            public void onResponse(Call<ServiceRequest> call,
+                                   Response<ServiceRequest> response) {
+
+                if (response.isSuccessful() && response.body() != null) {
+
+                    ServiceRequest request = response.body();
+
+                    actServiceType.setText(request.getServiceType(), false);
+                    actUrgency.setText(request.getUrgency(), false);
+
+                    etProblemDescription.setText(request.getProblemDescription());
+                    etNote.setText(request.getNote());
+
+                    if (request.getDesiredDate() != null &&
+                            request.getDesiredDate().length() >= 10) {
+
+                        etDesiredDate.setText(
+                                request.getDesiredDate().substring(0, 10)
+                        );
+                    }
+
+                    selectedVehicleId = request.getVehicleId();
+                    editVehicleId = request.getVehicleId();
+
+
+                } else {
+
+                    Toast.makeText(AddServiceRequestActivity.this,
+                            "Greška kod dohvaćanja zahtjeva.",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ServiceRequest> call, Throwable t) {
+
+                Toast.makeText(AddServiceRequestActivity.this,
+                        "Greška povezivanja.",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void showDatePicker() {
@@ -281,7 +412,17 @@ public class AddServiceRequestActivity extends AppCompatActivity {
                                     names);
 
                     actVehicle.setAdapter(adapter);
-
+                    if (isEditMode) {
+                        for (Vehicle vehicle : vehicles) {
+                            if (vehicle.getId() == editVehicleId) {
+                                actVehicle.setText(
+                                        vehicle.getBrand() + " " + vehicle.getModel(),
+                                        false
+                                );
+                                break;
+                            }
+                        }
+                    }
                     actVehicle.setOnItemClickListener((parent, view, position, id) -> {
                         selectedVehicleId = vehicles.get(position).getId();
                     });

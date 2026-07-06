@@ -17,7 +17,9 @@
         public string? Urgency { get; set; }
 
         public string Status { get; set; } = string.Empty;
+        public string? Note { get; set; }
 
         public DateTime CreatedAt { get; set; }
+        public DateTime? DesiredDate { get; set; }
     }
 }

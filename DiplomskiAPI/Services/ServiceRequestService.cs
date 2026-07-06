@@ -45,9 +45,29 @@ namespace DiplomskiAPI.Services
                 .ToList();
         }
 
-        public ServiceRequest? GetById(int id)
+        public ServiceRequestDto? GetById(int id)
         {
-            return _context.ServiceRequests.FirstOrDefault(sr => sr.Id == id);
+            return _context.ServiceRequests
+                .Where(sr => sr.Id == id)
+                .Join(
+                    _context.Vehicles,
+                    sr => sr.VehicleId,
+                    v => v.Id,
+                    (sr, v) => new ServiceRequestDto
+                    {
+                        Id = sr.Id,
+                        VehicleId = sr.VehicleId,
+                        VehicleName = v.Brand + " " + v.Model,
+                        LicensePlate = v.LicensePlate,
+                        ProblemDescription = sr.ProblemDescription,
+                        ServiceType = sr.ServiceType,
+                        Urgency = sr.Urgency,
+                        Status = sr.Status,
+                        Note = sr.Note,
+                        CreatedAt = sr.CreatedAt,
+                        DesiredDate = sr.DesiredDate
+                    })
+                .FirstOrDefault();
         }
 
         public ServiceRequest Create(ServiceRequestCreateDto request)
@@ -106,5 +126,29 @@ namespace DiplomskiAPI.Services
                 .Where(sr => sr.VehicleId == vehicleId)
                 .ToList();
         }
+
+        public ServiceRequest? Update(int id, ServiceRequestCreateDto request)
+        {
+            var serviceRequest = _context.ServiceRequests
+         .FirstOrDefault(sr => sr.Id == id);
+
+            if (serviceRequest == null)
+            {
+                return null;
+            }
+
+            serviceRequest.UserId = request.UserId;
+            serviceRequest.VehicleId = request.VehicleId;
+            serviceRequest.ProblemDescription = request.ProblemDescription;
+            serviceRequest.ServiceType = request.ServiceType;
+            serviceRequest.DesiredDate = request.DesiredDate;
+            serviceRequest.Urgency = request.Urgency;
+            serviceRequest.Note = request.Note;
+
+            _context.SaveChanges();
+
+            return serviceRequest;
+        }
+    
     }
 }
