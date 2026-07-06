@@ -38,7 +38,8 @@ public class AddVehicleActivity extends AppCompatActivity {
     private MaterialButton btnSaveVehicle;
 
     private VehicleApi vehicleApi;
-
+    private int vehicleId = 0;
+    private boolean isEditMode = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,8 +70,134 @@ public class AddVehicleActivity extends AppCompatActivity {
         setupFuelDropdown();
         etRegistrationDate.setOnClickListener(v -> showDatePicker());
         etRegistrationDate.setFocusable(false);
-        btnSaveVehicle.setOnClickListener(v -> saveVehicle());
+        vehicleId = getIntent().getIntExtra("vehicleId", 0);
+        isEditMode = vehicleId != 0;
+
+        if (isEditMode) {
+            loadVehicleForEdit(vehicleId);
+            btnSaveVehicle.setText("Spremi promjene");
+        }
+        btnSaveVehicle.setOnClickListener(v -> {
+            if (isEditMode) {
+                updateVehicle();
+            } else {
+                saveVehicle();
+            }
+        });
     }
+
+    private void loadVehicleForEdit(int vehicleId) {
+        vehicleApi.getVehicleById(vehicleId).enqueue(new Callback<Vehicle>() {
+            @Override
+            public void onResponse(Call<Vehicle> call, Response<Vehicle> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Vehicle vehicle = response.body();
+
+                    etBrand.setText(vehicle.getBrand());
+                    etModel.setText(vehicle.getModel());
+                    etYear.setText(String.valueOf(vehicle.getYear()));
+                    etMileage.setText(String.valueOf(vehicle.getMileage()));
+                    etLicensePlate.setText(vehicle.getLicensePlate());
+                    etVin.setText(vehicle.getVin());
+                    actFuelType.setText(vehicle.getFuelType(), false);
+                    etNote.setText(vehicle.getNote());
+
+                    if (vehicle.getRegistrationDate() != null &&
+                            vehicle.getRegistrationDate().length() >= 10) {
+                        etRegistrationDate.setText(
+                                vehicle.getRegistrationDate().substring(0, 10)
+                        );
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Vehicle> call, Throwable t) {
+                Toast.makeText(AddVehicleActivity.this,
+                        "Greška povezivanja: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void updateVehicle() {
+        String brand = etBrand.getText().toString().trim();
+        String model = etModel.getText().toString().trim();
+        String yearText = etYear.getText().toString().trim();
+        String mileageText = etMileage.getText().toString().trim();
+        String licensePlate = etLicensePlate.getText().toString().trim();
+        String vin = etVin.getText().toString().trim();
+        String fuelType = actFuelType.getText().toString().trim();
+        String registrationDate = etRegistrationDate.getText().toString().trim();
+        String note = etNote.getText().toString().trim();
+
+        if (brand.isEmpty() || model.isEmpty() || yearText.isEmpty()
+                || mileageText.isEmpty() || licensePlate.isEmpty()
+                || fuelType.isEmpty()) {
+            Toast.makeText(this, "Popunite obavezna polja.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int year;
+        int mileage;
+
+        try {
+            year = Integer.parseInt(yearText);
+            mileage = Integer.parseInt(mileageText);
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "Godište i kilometraža moraju biti brojevi.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (registrationDate.isEmpty()) {
+            registrationDate = null;
+        } else if (registrationDate.length() == 10) {
+            registrationDate = registrationDate + "T00:00:00Z";
+        }
+
+        SharedPreferences preferences = getSharedPreferences("USER_SESSION", MODE_PRIVATE);
+        int userId = preferences.getInt("userId", 0);
+
+        VehicleCreateRequest request = new VehicleCreateRequest(
+                userId,
+                brand,
+                model,
+                year,
+                licensePlate,
+                vin,
+                fuelType,
+                mileage,
+                registrationDate,
+                note
+        );
+
+        btnSaveVehicle.setEnabled(false);
+
+        vehicleApi.updateVehicle(vehicleId, request).enqueue(new Callback<Vehicle>() {
+            @Override
+            public void onResponse(Call<Vehicle> call, Response<Vehicle> response) {
+                btnSaveVehicle.setEnabled(true);
+
+                if (response.isSuccessful()) {
+                    showSuccessDialog();
+                } else {
+                    Toast.makeText(AddVehicleActivity.this,
+                            "Greška kod ažuriranja vozila: " + response.code(),
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Vehicle> call, Throwable t) {
+                btnSaveVehicle.setEnabled(true);
+
+                Toast.makeText(AddVehicleActivity.this,
+                        "Greška povezivanja: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
     private void showSuccessDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_success, null);

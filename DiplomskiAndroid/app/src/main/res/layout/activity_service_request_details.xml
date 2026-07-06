@@ -212,6 +212,29 @@
                     android:textColor="@color/text_dark"
                     android:textSize="16sp" />
 
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="18dp"
+                    android:layout_marginBottom="18dp"
+                    android:background="@color/border_light" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="ŽELJENI DATUM "
+                    android:textColor="@color/primary_burgundy"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txtDesiredDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="7dp"
+                    android:text="-"
+                    android:textColor="@color/text_dark"
+                    android:textSize="16sp" />
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

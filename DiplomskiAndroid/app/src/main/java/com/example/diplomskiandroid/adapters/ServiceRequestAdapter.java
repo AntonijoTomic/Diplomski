@@ -91,6 +91,16 @@ public class ServiceRequestAdapter extends RecyclerView.Adapter<ServiceRequestAd
     }
 
     private void showRequestOptions(View view, ServiceRequest request) {
+
+        if (!"PENDING".equals(request.getStatus())) {
+            Toast.makeText(
+                    view.getContext(),
+                    "Zahtjev više nije moguće uređivati ili obrisati.",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
         BottomSheetDialog dialog = new BottomSheetDialog(view.getContext());
 
         View sheetView = LayoutInflater.from(view.getContext())

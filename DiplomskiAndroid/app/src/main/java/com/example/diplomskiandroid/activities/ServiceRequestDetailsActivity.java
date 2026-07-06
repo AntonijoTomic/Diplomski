@@ -18,7 +18,7 @@ import retrofit2.Response;
 public class ServiceRequestDetailsActivity extends AppCompatActivity {
 
     private TextView txtBack, txtStatus, txtVehicle, txtServiceType,
-            txtUrgency, txtProblemDescription, txtNote, txtCreatedAt;
+            txtUrgency, txtProblemDescription, txtNote, txtCreatedAt, txtDesiredDate;
 
     private ServiceRequestApi serviceRequestApi;
 
@@ -35,7 +35,7 @@ public class ServiceRequestDetailsActivity extends AppCompatActivity {
         txtProblemDescription = findViewById(R.id.txtProblemDescription);
         txtNote = findViewById(R.id.txtNote);
         txtCreatedAt = findViewById(R.id.txtCreatedAt);
-
+        txtDesiredDate = findViewById(R.id.txtDesiredDate);
         txtBack.setOnClickListener(v -> finish());
 
         serviceRequestApi = ApiClient.getClient(this).create(ServiceRequestApi.class);
@@ -84,7 +84,7 @@ public class ServiceRequestDetailsActivity extends AppCompatActivity {
         txtUrgency.setText(safe(request.getUrgency()));
         txtProblemDescription.setText(safe(request.getProblemDescription()));
         txtCreatedAt.setText(formatDate(request.getCreatedAt()));
-
+        txtDesiredDate.setText(formatDate(request.getDesiredDate()));
         if (request.getNote() == null || request.getNote().isEmpty()) {
             txtNote.setText("-");
         } else {
