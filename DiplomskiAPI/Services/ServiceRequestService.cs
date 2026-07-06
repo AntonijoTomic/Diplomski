@@ -14,9 +14,52 @@ namespace DiplomskiAPI.Services
             _context = context;
         }
 
-        public List<ServiceRequest> GetAll()
+        public List<ServiceRequestDto> GetAll()
         {
-            return _context.ServiceRequests.ToList();
+            return _context.ServiceRequests
+     .Join(
+         _context.Vehicles,
+         sr => sr.VehicleId,
+         v => v.Id,
+         (sr, v) => new { sr, v })
+     .Join(
+         _context.Users,
+         x => x.sr.UserId,
+         u => u.Id,
+         (x, u) => new ServiceRequestDto
+         {
+             Id = x.sr.Id,
+             Vehicle = new VehicleDto
+             {
+                 Id = x.v.Id,
+                 Brand = x.v.Brand,
+                 Model = x.v.Model,
+                 Year = x.v.Year,
+                 LicensePlate = x.v.LicensePlate,
+                 Vin = x.v.Vin,
+                 FuelType = x.v.FuelType,
+                 Mileage = x.v.Mileage,
+                 RegistrationDate = x.v.RegistrationDate,
+                 Note = x.v.Note
+             },
+             ProblemDescription = x.sr.ProblemDescription,
+             ServiceType = x.sr.ServiceType,
+             Urgency = x.sr.Urgency,
+             Status = x.sr.Status,
+             Note = x.sr.Note,
+             CreatedAt = x.sr.CreatedAt,
+
+             User = new UserDto
+             {
+                 Id = u.Id,
+                 FirstName = u.FirstName,
+                 LastName = u.LastName,
+                 Email = u.Email,
+                 PhoneNumber = u.Phone
+             }
+         })
+         .OrderByDescending(x => x.CreatedAt)
+        .ToList();
         }
 
         public List<ServiceRequestDto> GetByUserId(int userId)
@@ -30,11 +73,19 @@ namespace DiplomskiAPI.Services
                     (sr, v) => new ServiceRequestDto
                     {
                         Id = sr.Id,
-                        VehicleId = sr.VehicleId,
-
-                        VehicleName = v.Brand + " " + v.Model,
-                        LicensePlate = v.LicensePlate,
-
+                        Vehicle = new VehicleDto
+                        {
+                            Id = v.Id,
+                            Brand = v.Brand,
+                            Model = v.Model,
+                            Year = v.Year,
+                            LicensePlate =v.LicensePlate,
+                            Vin = v.Vin,
+                            FuelType = v.FuelType,
+                            Mileage = v.Mileage,
+                            RegistrationDate = v.RegistrationDate,
+                            Note = v.Note
+                        },
                         ProblemDescription = sr.ProblemDescription,
                         ServiceType = sr.ServiceType,
                         Urgency = sr.Urgency,
@@ -53,19 +104,44 @@ namespace DiplomskiAPI.Services
                     _context.Vehicles,
                     sr => sr.VehicleId,
                     v => v.Id,
-                    (sr, v) => new ServiceRequestDto
+                    (sr, v) => new { sr, v })
+                .Join(
+                    _context.Users,
+                    x => x.sr.UserId,
+                    u => u.Id,
+                    (x, u) => new ServiceRequestDto
                     {
-                        Id = sr.Id,
-                        VehicleId = sr.VehicleId,
-                        VehicleName = v.Brand + " " + v.Model,
-                        LicensePlate = v.LicensePlate,
-                        ProblemDescription = sr.ProblemDescription,
-                        ServiceType = sr.ServiceType,
-                        Urgency = sr.Urgency,
-                        Status = sr.Status,
-                        Note = sr.Note,
-                        CreatedAt = sr.CreatedAt,
-                        DesiredDate = sr.DesiredDate
+                        Id = x.sr.Id,
+
+                        ProblemDescription = x.sr.ProblemDescription,
+                        ServiceType = x.sr.ServiceType,
+                        Urgency = x.sr.Urgency,
+                        Status = x.sr.Status,
+                        Note = x.sr.Note,
+                        CreatedAt = x.sr.CreatedAt,
+                        DesiredDate = x.sr.DesiredDate,
+
+                        User = new UserDto
+                        {
+                            Id = u.Id,
+                            FirstName = u.FirstName,
+                            LastName = u.LastName,
+                            Email = u.Email,
+                            PhoneNumber = u.Phone
+                        },
+                        Vehicle = new VehicleDto
+                        {
+                            Id = x.v.Id,
+                            Brand = x.v.Brand,
+                            Model = x.v.Model,
+                            Year = x.v.Year,
+                            LicensePlate = x.v.LicensePlate,
+                            Vin = x.v.Vin,
+                            FuelType = x.v.FuelType,
+                            Mileage = x.v.Mileage,
+                            RegistrationDate = x.v.RegistrationDate,
+                            Note = x.v.Note
+                        }
                     })
                 .FirstOrDefault();
         }

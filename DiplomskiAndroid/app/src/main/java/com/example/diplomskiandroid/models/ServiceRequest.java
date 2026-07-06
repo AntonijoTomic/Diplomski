@@ -12,6 +12,9 @@ public class ServiceRequest {
     private String createdAt;
     private String note;
     private String desiredDate;
+    private User user;
+    private Vehicle vehicle;
+
 
     public int getId() { return id; }
     public int getVehicleId() { return vehicleId; }
@@ -25,4 +28,7 @@ public class ServiceRequest {
     public String getNote() {return  note; }
 
     public String getDesiredDate() {  return desiredDate;  }
+    public User getUser() { return user; }
+
+    public Vehicle getVehicle() { return vehicle; }
 }

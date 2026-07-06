@@ -5,7 +5,7 @@ namespace DiplomskiAPI.Interfaces
 {
     public interface IServiceRequestService
     {
-        List<ServiceRequest> GetAll();
+        List<ServiceRequestDto> GetAll();
         List<ServiceRequestDto> GetByUserId(int userId);
         ServiceRequestDto? GetById(int id);
         ServiceRequest Create(ServiceRequestCreateDto request);

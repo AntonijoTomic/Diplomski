@@ -40,9 +40,14 @@
             android:name=".activities.ServiceRequestDetailsActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".activities.VehicleDetailsActivity"
+        <activity
+            android:name=".activities.VehicleDetailsActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize"/>
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".activities.AdminServiceRequestDetailsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

@@ -1,5 +1,6 @@
 package com.example.diplomskiandroid;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,6 +13,8 @@ public class MainActivity extends AppCompatActivity {
 
     private ViewPager2 viewPager;
     private BottomNavigationView bottomNavigation;
+    private String role;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,8 +24,14 @@ public class MainActivity extends AppCompatActivity {
         viewPager = findViewById(R.id.viewPager);
         bottomNavigation = findViewById(R.id.bottomNavigation);
 
-        ViewPagerAdapter adapter = new ViewPagerAdapter(this);
+        SharedPreferences preferences = getSharedPreferences("USER_SESSION", MODE_PRIVATE);
+        role = preferences.getString("role", "USER");
+
+        setupNavigationLabels();
+
+        ViewPagerAdapter adapter = new ViewPagerAdapter(this, role);
         viewPager.setAdapter(adapter);
+
 
         bottomNavigation.setOnItemSelectedListener(item -> {
 
@@ -77,5 +86,15 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
+    }
+
+    private void setupNavigationLabels() {boolean isAdmin = role.equals("ADMIN") || role.equals("SERVICER");
+
+        if (isAdmin) {
+            bottomNavigation.getMenu().findItem(R.id.nav_home).setTitle("Dashboard");
+            bottomNavigation.getMenu().findItem(R.id.nav_vehicles).setTitle("Zahtjevi");
+            bottomNavigation.getMenu().findItem(R.id.nav_requests).setTitle("Nalozi");
+            bottomNavigation.getMenu().findItem(R.id.nav_profile).setTitle("Profil");
+        }
     }
 }

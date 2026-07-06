@@ -32,4 +32,13 @@ public interface ServiceRequestApi {
             @Path("id") int id,
             @Body ServiceRequestCreateRequest request
     );
+
+    @GET("api/ServiceRequests")
+    Call<List<ServiceRequest>> getAllRequests();
+
+    @PUT("api/ServiceRequests/{id}/status")
+    Call<ServiceRequest> updateStatus(
+            @Path("id") int id,
+            @Body String status
+    );
 }

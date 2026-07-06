@@ -4,12 +4,6 @@
     {
         public int Id { get; set; }
 
-        public int VehicleId { get; set; }
-
-        public string VehicleName { get; set; } = string.Empty;
-
-        public string LicensePlate { get; set; } = string.Empty;
-
         public string ProblemDescription { get; set; } = string.Empty;
 
         public string? ServiceType { get; set; }
@@ -21,5 +15,7 @@
 
         public DateTime CreatedAt { get; set; }
         public DateTime? DesiredDate { get; set; }
+        public UserDto User { get; set; } = new();
+        public VehicleDto Vehicle { get; set; } = new();
     }
 }
