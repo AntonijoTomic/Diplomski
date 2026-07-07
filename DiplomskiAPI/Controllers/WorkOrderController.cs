@@ -1,9 +1,11 @@
 ﻿using DiplomskiAPI.DTOs;
 using DiplomskiAPI.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DiplomskiAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class WorkOrdersController : ControllerBase
@@ -78,5 +80,30 @@ namespace DiplomskiAPI.Controllers
         {
             return Ok(_workOrderService.GetByUserId(userId));
         }
+
+        [HttpGet("{id}/details")]
+        public IActionResult GetDetails(int id)
+        {
+            var workOrder = _workOrderService.GetDetailsById(id);
+
+            if (workOrder == null)
+            {
+                return NotFound("Radni nalog nije pronađen.");
+            }
+
+            return Ok(workOrder);
+        }
+
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, WorkOrderUpdateDto request)
+        {
+            var workOrder = _workOrderService.Update(id, request);
+
+            if (workOrder == null)
+                return NotFound();
+
+            return Ok(workOrder);
+        }
+
     }
 }

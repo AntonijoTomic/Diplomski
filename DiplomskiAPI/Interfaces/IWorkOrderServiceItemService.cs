@@ -5,7 +5,7 @@ namespace DiplomskiAPI.Interfaces
 {
     public interface IWorkOrderServiceItemService
     {
-        List<WorkOrderServiceItem> GetByWorkOrderId(int workOrderId);
+        List<WorkOrderServiceItemDto> GetByWorkOrderId(int workOrderId);
 
         WorkOrderServiceItem? AddServiceToWorkOrder(WorkOrderServiceCreateDto request);
 

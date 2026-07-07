@@ -1,0 +1,568 @@
+package com.example.diplomskiandroid.activities;
+
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Bundle;
+import android.view.View;
+import android.view.Window;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.TextView;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import android.widget.Toast;
+import com.example.diplomskiandroid.R;
+import com.example.diplomskiandroid.adapters.WorkOrderServiceAdapter;
+import com.example.diplomskiandroid.api.ApiClient;
+import com.example.diplomskiandroid.api.ServiceApi;
+import com.example.diplomskiandroid.api.WorkOrderApi;
+
+import com.example.diplomskiandroid.api.WorkOrderServiceApi;
+import com.example.diplomskiandroid.models.Service;
+import com.example.diplomskiandroid.models.WorkOrder;
+import com.example.diplomskiandroid.models.WorkOrderServiceCreateRequest;
+import com.example.diplomskiandroid.models.WorkOrderServiceItem;
+import com.example.diplomskiandroid.models.WorkOrderUpdateRequest;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class WorkOrderDetailsActivity extends AppCompatActivity {
+    private TextView txtOrderNumber;
+    private TextView txtStatus;
+
+    private TextView txtVehicle;
+    private TextView txtLicensePlate;
+    private TextView txtYear;
+    private TextView txtFuelType;
+    private TextView txtMileage;
+    private TextView txtVin;
+
+    private TextView txtOwnerName;
+    private TextView txtOwnerPhone;
+    private TextView txtOwnerEmail;
+
+    private TextView txtProblemDescription;
+
+    private TextInputEditText etDiagnosis;
+    private TextInputEditText etFinalReport;
+
+    private TextView txtEstimatedCost;
+    private TextView txtFinalCost;
+
+    private RecyclerView rvServices;
+    private TextView txtNoServices;
+    private WorkOrderServiceAdapter serviceAdapter;
+    private final List<WorkOrderServiceItem> workOrderServices = new ArrayList<>();
+
+    private WorkOrderApi workOrderApi;
+        private TextView btnBack;
+
+        private  MaterialButton  btnSave;
+    private List<Service> services = new ArrayList<>();
+    private ServiceApi serviceApi;
+    private WorkOrderServiceApi workOrderServiceApi;
+    private  MaterialButton btnAddService;
+    private int workOrderId;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_work_order_details);
+        View rootView = findViewById(android.R.id.content);
+        ViewCompat.setOnApplyWindowInsetsListener(rootView, (view, insets) -> {
+            int imeHeight = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
+            int navBar = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+            view.setPadding(0, 0, 0, Math.max(imeHeight, navBar));
+            return insets;
+        });
+        txtOrderNumber = findViewById(R.id.txtOrderNumber);
+        txtStatus = findViewById(R.id.txtStatus);
+
+        txtVehicle = findViewById(R.id.txtVehicle);
+        txtLicensePlate = findViewById(R.id.txtLicensePlate);
+        txtYear = findViewById(R.id.txtYear);
+        txtFuelType = findViewById(R.id.txtFuelType);
+        txtMileage = findViewById(R.id.txtMileage);
+        txtVin = findViewById(R.id.txtVin);
+
+        txtOwnerName = findViewById(R.id.txtOwnerName);
+        txtOwnerPhone = findViewById(R.id.txtOwnerPhone);
+        txtOwnerEmail = findViewById(R.id.txtOwnerEmail);
+
+        txtProblemDescription = findViewById(R.id.txtProblemDescription);
+
+        etDiagnosis = findViewById(R.id.etDiagnosis);
+        etFinalReport = findViewById(R.id.etFinalReport);
+
+        txtEstimatedCost = findViewById(R.id.txtEstimatedCost);
+        txtFinalCost = findViewById(R.id.txtFinalCost);
+        btnSave = findViewById(R.id.btnSaveWorkOrder);
+
+        btnAddService = findViewById(R.id.btnAddService);
+
+        workOrderId = getIntent().getIntExtra("workOrderId", 0);
+
+        workOrderApi = ApiClient.getClient(this)
+                .create(WorkOrderApi.class);
+
+        serviceApi = ApiClient.getClient(this)
+                .create(ServiceApi.class);
+
+        workOrderServiceApi = ApiClient.getClient(this)
+                .create(WorkOrderServiceApi.class);
+
+        btnBack = findViewById(R.id.txtBack);
+        btnBack.setOnClickListener(v -> finish());
+        btnSave.setOnClickListener(v -> updateWorkOrder());
+        btnAddService.setOnClickListener(v -> loadServices());
+
+        rvServices = findViewById(R.id.rvServices);
+        txtNoServices = findViewById(R.id.txtNoServices);
+
+        rvServices.setLayoutManager(new LinearLayoutManager(this));
+        serviceAdapter = new WorkOrderServiceAdapter(workOrderServices,
+                item -> deleteServiceItem(item)
+        );
+        rvServices.setAdapter(serviceAdapter);
+
+        loadWorkOrder();
+        loadWorkOrderServices();
+    }
+
+    private void deleteServiceItem(WorkOrderServiceItem item) {
+        workOrderServiceApi.deleteServiceItem(item.getId())
+                .enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+                        if (response.isSuccessful()) {
+                            Toast.makeText(
+                                    WorkOrderDetailsActivity.this,
+                                    "Usluga je obrisana.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+
+                            loadWorkOrderServices();
+                            loadWorkOrder();
+                        } else {
+                            Toast.makeText(
+                                    WorkOrderDetailsActivity.this,
+                                    "Greška kod brisanja usluge.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t) {
+                        Toast.makeText(
+                                WorkOrderDetailsActivity.this,
+                                "Greška povezivanja.",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
+    }
+
+    private void loadWorkOrderServices() {
+        workOrderServiceApi.getByWorkOrderId(workOrderId)
+                .enqueue(new Callback<List<WorkOrderServiceItem>>() {
+                    @Override
+                    public void onResponse(Call<List<WorkOrderServiceItem>> call,
+                                           Response<List<WorkOrderServiceItem>> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            serviceAdapter.updateData(response.body());
+                            txtNoServices.setVisibility(response.body().isEmpty() ? View.VISIBLE : View.GONE);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<WorkOrderServiceItem>> call, Throwable t) {
+                    }
+                });
+    }
+
+    private void loadServices() {
+
+        serviceApi.getAllServices().enqueue(new Callback<List<Service>>() {
+
+            @Override
+            public void onResponse(Call<List<Service>> call,
+                                   Response<List<Service>> response) {
+
+                if (response.isSuccessful() && response.body() != null) {
+
+                    services = response.body();
+
+                    showAddServiceDialog();
+
+                } else {
+
+                    Toast.makeText(
+                            WorkOrderDetailsActivity.this,
+                            "Greška kod dohvaćanja usluga.",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Service>> call,
+                                  Throwable t) {
+
+                Toast.makeText(
+                        WorkOrderDetailsActivity.this,
+                        t.getMessage(),
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+        });
+    }
+
+    private void showAddServiceDialog() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        View view = getLayoutInflater()
+                .inflate(R.layout.dialog_add_work_order_service, null);
+
+        builder.setView(view);
+
+        AlertDialog dialog = builder.create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        AutoCompleteTextView actService =
+                view.findViewById(R.id.actService);
+
+        TextInputEditText etHours =
+                view.findViewById(R.id.etHours);
+
+        TextInputEditText etHourlyRate =
+                view.findViewById(R.id.etHourlyRate);
+
+        MaterialButton btnCancel =
+                view.findViewById(R.id.btnCancel);
+
+        MaterialButton btnAdd =
+                view.findViewById(R.id.btnAdd);
+
+        List<String> serviceNames = new ArrayList<>();
+
+        for (Service service : services) {
+            serviceNames.add(service.getName());
+        }
+
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<>(
+                        this,
+                        android.R.layout.simple_dropdown_item_1line,
+                        serviceNames);
+
+        actService.setAdapter(adapter);
+
+        final Service[] selectedService = {null};
+
+        actService.setOnItemClickListener((parent, view1, position, id) -> {
+
+            selectedService[0] = services.get(position);
+
+            etHourlyRate.setText(
+                    String.valueOf(selectedService[0].getPrice())
+            );
+
+        });
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        btnAdd.setOnClickListener(v -> {
+
+            if (selectedService[0] == null) {
+
+                Toast.makeText(
+                        this,
+                        "Odaberite uslugu.",
+                        Toast.LENGTH_SHORT
+                ).show();
+
+                return;
+            }
+
+            if (etHours.getText() == null ||
+                    etHours.getText().toString().isEmpty()) {
+
+                etHours.setError("Unesite sate");
+
+                return;
+            }
+
+            addServiceToWorkOrder(
+                    selectedService[0].getId(),
+                    Double.parseDouble(etHours.getText().toString()),
+                    Double.parseDouble(etHourlyRate.getText().toString())
+            );
+
+            dialog.dismiss();
+
+        });
+
+        dialog.show();
+    }
+
+    private void addServiceToWorkOrder(int serviceId, double hours, double hourlyRate) {
+
+        WorkOrderServiceCreateRequest request =
+                new WorkOrderServiceCreateRequest(
+                        workOrderId,
+                        serviceId,
+                        hours,
+                        hourlyRate
+                );
+
+        workOrderServiceApi.addServiceToWorkOrder(request)
+                .enqueue(new Callback<WorkOrderServiceItem>() {
+                    @Override
+                    public void onResponse(Call<WorkOrderServiceItem> call,
+                                           Response<WorkOrderServiceItem> response) {
+
+                        if (response.isSuccessful()) {
+                            Toast.makeText(
+                                    WorkOrderDetailsActivity.this,
+                                    "Usluga je dodana.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+
+                            loadWorkOrderServices();
+                            loadWorkOrder();
+                                            }
+                        else {
+                            Toast.makeText(
+                                    WorkOrderDetailsActivity.this,
+                                    "Greška kod dodavanja usluge.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<WorkOrderServiceItem> call,
+                                          Throwable t) {
+
+                        Toast.makeText(
+                                WorkOrderDetailsActivity.this,
+                                "Greška povezivanja.",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
+    }
+
+    private void updateWorkOrder() {
+        WorkOrderUpdateRequest request =
+                new WorkOrderUpdateRequest(
+                        etDiagnosis.getText().toString().trim(),
+                        etFinalReport.getText().toString().trim()
+                );
+
+        workOrderApi.updateWorkOrder(workOrderId, request)
+                .enqueue(new Callback<WorkOrder>() {
+
+                    @Override
+                    public void onResponse(Call<WorkOrder> call,
+                                           Response<WorkOrder> response) {
+
+                        if (response.isSuccessful()) {
+
+                            showSuccessDialog(
+                                    "Radni nalog je uspješno spremljen."
+                            );
+
+                        } else {
+
+                            Toast.makeText(
+                                    WorkOrderDetailsActivity.this,
+                                    "Greška kod spremanja.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<WorkOrder> call,
+                                          Throwable t) {
+
+                        Toast.makeText(
+                                WorkOrderDetailsActivity.this,
+                                "Greška povezivanja.",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
+    }
+
+private void showSuccessDialog(String message) {
+
+    Dialog dialog = new Dialog(this);
+    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+    dialog.setContentView(R.layout.dialog_success);
+    dialog.setCancelable(false);
+
+    TextView txtMessage = dialog.findViewById(R.id.txtMessage);
+    MaterialButton btnOk = dialog.findViewById(R.id.btnOk);
+
+    txtMessage.setText(message);
+
+    btnOk.setOnClickListener(v -> {
+        dialog.dismiss();
+        loadWorkOrder();
+        finish();
+    });
+
+    if (dialog.getWindow() != null) {
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+    }
+
+    dialog.show();
+}
+    private void loadWorkOrder() {
+
+        workOrderApi.getWorkOrderDetails(workOrderId)
+                .enqueue(new Callback<WorkOrder>() {
+
+                    @Override
+                    public void onResponse(Call<WorkOrder> call,
+                                           Response<WorkOrder> response) {
+
+                        if (response.isSuccessful() && response.body() != null) {
+
+                            showWorkOrder(response.body());
+
+                        } else {
+
+                            Toast.makeText(
+                                    WorkOrderDetailsActivity.this,
+                                    "Greška kod dohvaćanja.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<WorkOrder> call,
+                                          Throwable t) {
+
+                        Toast.makeText(
+                                WorkOrderDetailsActivity.this,
+                                t.getMessage(),
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
+    }
+
+    private void showWorkOrder(WorkOrder workOrder) {
+
+        txtOrderNumber.setText(workOrder.getOrderNumber());
+
+        txtStatus.setText(workOrder.getStatus());
+
+        txtVehicle.setText(
+                workOrder.getServiceRequest()
+                        .getVehicle()
+                        .getBrand()
+                        + " " +
+                        workOrder.getServiceRequest()
+                                .getVehicle()
+                                .getModel()
+        );
+
+        txtLicensePlate.setText(
+                workOrder.getServiceRequest()
+                        .getVehicle()
+                        .getLicensePlate()
+        );
+
+        txtYear.setText(
+                String.valueOf(
+                        workOrder.getServiceRequest()
+                                .getVehicle()
+                                .getYear()
+                )
+        );
+
+        txtFuelType.setText(
+                workOrder.getServiceRequest()
+                        .getVehicle()
+                        .getFuelType()
+        );
+
+        txtMileage.setText(
+                workOrder.getServiceRequest()
+                        .getVehicle()
+                        .getMileage() + " km"
+        );
+
+        txtVin.setText(
+                workOrder.getServiceRequest()
+                        .getVehicle()
+                        .getVin()
+        );
+
+        txtOwnerName.setText(
+                workOrder.getServiceRequest()
+                        .getUser()
+                        .getFirstName()
+                        + " " +
+                        workOrder.getServiceRequest()
+                                .getUser()
+                                .getLastName()
+        );
+
+        txtOwnerPhone.setText(
+                workOrder.getServiceRequest()
+                        .getUser()
+                        .getPhoneNumber()
+        );
+
+        txtOwnerEmail.setText(
+                workOrder.getServiceRequest()
+                        .getUser()
+                        .getEmail()
+        );
+
+        txtProblemDescription.setText(
+                workOrder.getServiceRequest()
+                        .getProblemDescription()
+        );
+
+        etDiagnosis.setText(workOrder.getDiagnosis());
+
+        etFinalReport.setText(workOrder.getFinalReport());
+
+        txtEstimatedCost.setText(
+                workOrder.getEstimatedCost() + " €"
+        );
+
+        txtFinalCost.setText(
+                workOrder.getFinalCost() + " €"
+        );
+    }
+
+
+}

@@ -120,7 +120,7 @@ public class AddVehicleActivity extends AppCompatActivity {
         });
     }
 
-    private void updateVehicle() {
+    public void updateVehicle() {
         String brand = etBrand.getText().toString().trim();
         String model = etModel.getText().toString().trim();
         String yearText = etYear.getText().toString().trim();

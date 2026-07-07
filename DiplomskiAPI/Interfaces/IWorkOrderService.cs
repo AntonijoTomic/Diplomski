@@ -9,7 +9,7 @@ namespace DiplomskiAPI.Interfaces
 
         WorkOrder? GetById(int id);
 
-        WorkOrder Create(WorkOrderCreateDto request);
+        WorkOrderDto Create(WorkOrderCreateDto request);
 
         WorkOrder? UpdateStatus(int id, string status);
 
@@ -17,5 +17,7 @@ namespace DiplomskiAPI.Interfaces
 
         List<WorkOrder> GetByVehicleId(int vehicleId);
         List<WorkOrder> GetByUserId(int userId);
+        WorkOrderDto? GetDetailsById(int id);
+        WorkOrderDto? Update(int id, WorkOrderUpdateDto request);
     }
 }

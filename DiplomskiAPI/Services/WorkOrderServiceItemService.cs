@@ -14,10 +14,29 @@ namespace DiplomskiAPI.Services
             _context = context;
         }
 
-        public List<WorkOrderServiceItem> GetByWorkOrderId(int workOrderId)
+        public List<WorkOrderServiceItemDto> GetByWorkOrderId(int workOrderId)
         {
             return _context.WorkOrderServices
-                .Where(wos => wos.WorkOrderId == workOrderId)
+                .Where(w => w.WorkOrderId == workOrderId)
+                .Join(
+                    _context.Services,
+                    item => item.ServiceId,
+                    service => service.Id,
+                    (item, service) => new WorkOrderServiceItemDto
+                    {
+                        Id = item.Id,
+                        Hours = item.Hours,
+                        HourlyRate = item.HourlyRate,
+                        TotalPrice = item.TotalPrice,
+
+                        Service = new ServiceDto
+                        {
+                            Id = service.Id,
+                            Name = service.Name,
+                            Description = service.Description,
+                            Price = service.Price
+                        }
+                    })
                 .ToList();
         }
 

@@ -62,7 +62,7 @@ public class ServiceRequestAdapter extends RecyclerView.Adapter<ServiceRequestAd
         holder.txtDescription.setText(request.getProblemDescription());
 
         holder.txtVehicle.setText(
-                request.getVehicleName() + " • " + request.getLicensePlate()
+                request.getVehicle().getBrand()+ " " + request.getVehicle().getModel() + " • " + request.getVehicle().getLicensePlate()
         );
 
         holder.txtPriority.setText(

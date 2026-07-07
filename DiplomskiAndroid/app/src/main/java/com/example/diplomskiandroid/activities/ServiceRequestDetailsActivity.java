@@ -77,7 +77,7 @@ public class ServiceRequestDetailsActivity extends AppCompatActivity {
         txtStatus.setText(formatStatus(request.getStatus()));
         setStatusBackground(request.getStatus());
         txtVehicle.setText(
-                safe(request.getVehicleName()) + "\n" + safe(request.getLicensePlate())
+                safe(request.getVehicle().getBrand() + " " + request.getVehicle().getModel()) + "\n" + safe(request.getVehicle().getLicensePlate())
         );
 
         txtServiceType.setText(safe(request.getServiceType()));

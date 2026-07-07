@@ -1,6 +1,8 @@
 package com.example.diplomskiandroid.activities;
 
 import android.app.Dialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -17,8 +19,11 @@ import androidx.cardview.widget.CardView;
 import com.example.diplomskiandroid.R;
 import com.example.diplomskiandroid.api.ApiClient;
 import com.example.diplomskiandroid.api.ServiceRequestApi;
+import com.example.diplomskiandroid.api.WorkOrderApi;
 import com.example.diplomskiandroid.models.ServiceRequest;
 import com.example.diplomskiandroid.models.Vehicle;
+import com.example.diplomskiandroid.models.WorkOrder;
+import com.example.diplomskiandroid.models.WorkOrderCreateRequest;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
@@ -118,9 +123,52 @@ public class AdminServiceRequestDetailsActivity extends AppCompatActivity {
         txtBack.setOnClickListener(v -> finish());
         btnAccept.setOnClickListener(v -> updateStatus("IN_PROGRESS"));
         btnReject.setOnClickListener(v -> updateStatus("REJECTED"));
-
+        btnCreateWorkOrder.setOnClickListener(v -> createWorkOrder());
 
         loadRequest();
+    }
+
+    private void createWorkOrder() {
+        SharedPreferences preferences = getSharedPreferences("USER_SESSION", MODE_PRIVATE);
+        int adminId = preferences.getInt("userId", 0);
+
+        WorkOrderCreateRequest request = new WorkOrderCreateRequest(requestId, adminId);
+
+        WorkOrderApi workOrderApi = ApiClient.getClient(this).create(WorkOrderApi.class);
+
+        workOrderApi.createWorkOrder(request).enqueue(new Callback<WorkOrder>() {
+            @Override
+            public void onResponse(Call<WorkOrder> call, Response<WorkOrder> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Intent intent = new Intent(
+                            AdminServiceRequestDetailsActivity.this,
+                            WorkOrderDetailsActivity.class
+                    );
+                    intent.putExtra("workOrderId", response.body().getId());
+                    startActivity(intent);
+                    finish();
+                }else if(response.code() == 409){
+                    Toast.makeText(
+                            AdminServiceRequestDetailsActivity.this,
+                            "Za ovaj servisni zahtjev već postoji radni nalog.",
+                            Toast.LENGTH_SHORT
+                    ).show();}
+                else {
+                    Toast.makeText(
+                            AdminServiceRequestDetailsActivity.this,
+                            "Greška kod izrade radnog naloga.",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<WorkOrder> call, Throwable t) {
+                Toast.makeText(AdminServiceRequestDetailsActivity.this,
+                        "Greška povezivanja.",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void loadRequest() {
