@@ -10,7 +10,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Dodaj uslugu"
+        android:text="Dodaj autodio"
         android:textColor="@color/primary_burgundy"
         android:textSize="22sp"
         android:textStyle="bold" />
@@ -19,23 +19,24 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
-        android:text="Odaberite servisnu uslugu i unesite podatke."
+        android:text="Odaberite autodio i unesite količinu."
         android:textColor="@color/text_gray"
         android:textSize="14sp" />
 
     <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:hint="Servisna usluga"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        android:hint="Autodio">
 
         <AutoCompleteTextView
-            android:id="@+id/actService"
+            android:id="@+id/actPart"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/black"
-            android:inputType="none"/>
+            android:inputType="text"
+            android:completionThreshold="1"
+            android:textColor="@color/black" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -43,31 +44,30 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="Broj sati">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etHours"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/black"
-
-                android:inputType="numberDecimal"/>
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="Cijena po satu (€)">
+        android:hint="Količina">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etHourlyRate"
+            android:id="@+id/etQuantity"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/black"
-            android:inputType="numberDecimal"/>
+            android:inputType="number"
+            android:textColor="@color/black" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="Cijena (€)">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etPartPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:inputType="numberDecimal"
+            android:textColor="@color/black" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <LinearLayout
@@ -84,8 +84,8 @@
             android:layout_height="wrap_content"
             android:text="Odustani"
             android:textAllCaps="false"
-            app:strokeColor="@color/primary_burgundy"
-            android:textColor="@color/primary_burgundy"/>
+            android:textColor="@color/primary_burgundy"
+            app:strokeColor="@color/primary_burgundy" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAdd"
@@ -95,7 +95,8 @@
             android:text="Dodaj"
             android:textAllCaps="false"
             android:textColor="@color/white"
-            app:backgroundTint="@color/primary_burgundy"/>
+            app:backgroundTint="@color/primary_burgundy" />
+
     </LinearLayout>
 
 </LinearLayout>

@@ -16,6 +16,8 @@ namespace DiplomskiAPI.Data
         public DbSet<WorkOrder> WorkOrders { get; set; }
         public DbSet<Service> Services { get; set; }
         public DbSet<WorkOrderServiceItem> WorkOrderServices { get; set; }
- 
+        public DbSet<Part> Parts { get; set; }
+        public DbSet<WorkOrderPartItem> WorkOrderParts { get; set; }
+
     }
 }

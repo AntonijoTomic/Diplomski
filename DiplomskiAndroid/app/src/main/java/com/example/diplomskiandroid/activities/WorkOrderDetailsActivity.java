@@ -20,14 +20,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.widget.Toast;
 import com.example.diplomskiandroid.R;
+import com.example.diplomskiandroid.adapters.WorkOrderPartAdapter;
 import com.example.diplomskiandroid.adapters.WorkOrderServiceAdapter;
 import com.example.diplomskiandroid.api.ApiClient;
+import com.example.diplomskiandroid.api.PartApi;
 import com.example.diplomskiandroid.api.ServiceApi;
 import com.example.diplomskiandroid.api.WorkOrderApi;
 
+import com.example.diplomskiandroid.api.WorkOrderPartApi;
 import com.example.diplomskiandroid.api.WorkOrderServiceApi;
+import com.example.diplomskiandroid.models.Part;
 import com.example.diplomskiandroid.models.Service;
 import com.example.diplomskiandroid.models.WorkOrder;
+import com.example.diplomskiandroid.models.WorkOrderPartCreateRequest;
+import com.example.diplomskiandroid.models.WorkOrderPartItem;
 import com.example.diplomskiandroid.models.WorkOrderServiceCreateRequest;
 import com.example.diplomskiandroid.models.WorkOrderServiceItem;
 import com.example.diplomskiandroid.models.WorkOrderUpdateRequest;
@@ -42,41 +48,24 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class WorkOrderDetailsActivity extends AppCompatActivity {
-    private TextView txtOrderNumber;
-    private TextView txtStatus;
-
-    private TextView txtVehicle;
-    private TextView txtLicensePlate;
-    private TextView txtYear;
-    private TextView txtFuelType;
-    private TextView txtMileage;
-    private TextView txtVin;
-
-    private TextView txtOwnerName;
-    private TextView txtOwnerPhone;
-    private TextView txtOwnerEmail;
-
-    private TextView txtProblemDescription;
-
-    private TextInputEditText etDiagnosis;
-    private TextInputEditText etFinalReport;
-
-    private TextView txtEstimatedCost;
-    private TextView txtFinalCost;
-
-    private RecyclerView rvServices;
-    private TextView txtNoServices;
+    private TextView txtOrderNumber, txtStatus, txtVehicle, txtLicensePlate,
+            txtYear, txtFuelType, txtMileage, txtVin, txtOwnerName,
+            txtOwnerPhone, txtOwnerEmail, txtProblemDescription,
+            txtEstimatedCost, txtFinalCost, txtNoServices, txtNoParts, btnBack;
+    private TextInputEditText etDiagnosis, etFinalReport;
+    private RecyclerView rvServices, rvParts;
+    private MaterialButton btnSave, btnAddService, btnAddPart;
     private WorkOrderServiceAdapter serviceAdapter;
-    private final List<WorkOrderServiceItem> workOrderServices = new ArrayList<>();
-
+    private WorkOrderPartAdapter partAdapter;
     private WorkOrderApi workOrderApi;
-        private TextView btnBack;
-
-        private  MaterialButton  btnSave;
-    private List<Service> services = new ArrayList<>();
     private ServiceApi serviceApi;
     private WorkOrderServiceApi workOrderServiceApi;
-    private  MaterialButton btnAddService;
+    private PartApi partApi;
+    private WorkOrderPartApi workOrderPartApi;
+    private final List<WorkOrderServiceItem> workOrderServices = new ArrayList<>();
+    private final List<WorkOrderPartItem> workOrderParts = new ArrayList<>();
+    private List<Service> services = new ArrayList<>();
+    private List<Part> parts = new ArrayList<>();
     private int workOrderId;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,10 +115,18 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
         workOrderServiceApi = ApiClient.getClient(this)
                 .create(WorkOrderServiceApi.class);
 
+        partApi = ApiClient.getClient(this)
+                .create(PartApi.class);
+
+        workOrderPartApi = ApiClient.getClient(this)
+                .create(WorkOrderPartApi.class);
+
         btnBack = findViewById(R.id.txtBack);
         btnBack.setOnClickListener(v -> finish());
         btnSave.setOnClickListener(v -> updateWorkOrder());
         btnAddService.setOnClickListener(v -> loadServices());
+        btnAddPart = findViewById(R.id.btnAddPart);
+        btnAddPart.setOnClickListener(v -> loadParts());
 
         rvServices = findViewById(R.id.rvServices);
         txtNoServices = findViewById(R.id.txtNoServices);
@@ -140,8 +137,127 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
         );
         rvServices.setAdapter(serviceAdapter);
 
+
+        rvParts = findViewById(R.id.rvParts);
+        txtNoParts = findViewById(R.id.txtNoParts);
+
+        rvParts.setLayoutManager(new LinearLayoutManager(this));
+
+        partAdapter = new WorkOrderPartAdapter(
+                workOrderParts,
+                item -> deletePartItem(item)
+        );
+
+        rvParts.setAdapter(partAdapter);
+
+        loadWorkOrderParts();
         loadWorkOrder();
         loadWorkOrderServices();
+    }
+
+    private void loadParts() {
+
+        partApi.getAllParts().enqueue(new Callback<List<Part>>() {
+
+            @Override
+            public void onResponse(Call<List<Part>> call,
+                                   Response<List<Part>> response) {
+
+                if (response.isSuccessful() && response.body() != null) {
+
+                    parts = response.body();
+
+                    showAddPartDialog();
+
+                } else {
+                    Toast.makeText(
+                            WorkOrderDetailsActivity.this,
+                            "Greška kod dohvaćanja autodijelova.",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Part>> call,
+                                  Throwable t) {
+
+                Toast.makeText(
+                        WorkOrderDetailsActivity.this,
+                        t.getMessage(),
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+        });
+    }
+    private void loadWorkOrderParts() {
+
+        workOrderPartApi.getByWorkOrderId(workOrderId)
+                .enqueue(new Callback<List<WorkOrderPartItem>>() {
+
+                    @Override
+                    public void onResponse(Call<List<WorkOrderPartItem>> call,
+                                           Response<List<WorkOrderPartItem>> response) {
+
+                        if (response.isSuccessful() && response.body() != null) {
+
+                            partAdapter.updateData(response.body());
+
+                            txtNoParts.setVisibility(
+                                    response.body().isEmpty()
+                                            ? View.VISIBLE
+                                            : View.GONE
+                            );
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<WorkOrderPartItem>> call,
+                                          Throwable t) {
+
+                    }
+                });
+    }
+
+    private void deletePartItem(WorkOrderPartItem item) {
+
+        workOrderPartApi.deletePartItem(item.getId())
+                .enqueue(new Callback<Void>() {
+
+                    @Override
+                    public void onResponse(Call<Void> call,
+                                           Response<Void> response) {
+
+                        if (response.isSuccessful()) {
+
+                            showMessageDialog(
+                                    "Autodio je uspješno obrisan.",
+                                    () -> {
+                                        loadWorkOrderParts();
+                                        loadWorkOrder();
+                                    }
+                            );
+                        } else {
+
+                            Toast.makeText(
+                                    WorkOrderDetailsActivity.this,
+                                    "Greška kod brisanja autodijela.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Void> call,
+                                          Throwable t) {
+
+                        Toast.makeText(
+                                WorkOrderDetailsActivity.this,
+                                "Greška povezivanja.",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
     }
 
     private void deleteServiceItem(WorkOrderServiceItem item) {
@@ -150,14 +266,11 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(Call<Void> call, Response<Void> response) {
                         if (response.isSuccessful()) {
-                            Toast.makeText(
-                                    WorkOrderDetailsActivity.this,
-                                    "Usluga je obrisana.",
-                                    Toast.LENGTH_SHORT
-                            ).show();
+                            showMessageDialog("Usluga je uspješno obrisana.", () -> {
+                                loadWorkOrderServices();
+                                loadWorkOrder();
+                            });
 
-                            loadWorkOrderServices();
-                            loadWorkOrder();
                         } else {
                             Toast.makeText(
                                     WorkOrderDetailsActivity.this,
@@ -389,9 +502,10 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
 
                         if (response.isSuccessful()) {
 
-                            showSuccessDialog(
-                                    "Radni nalog je uspješno spremljen."
-                            );
+                            showMessageDialog("Radni nalog je uspješno spremljen.", () -> {
+                                loadWorkOrder();
+                                finish();
+                            });
 
                         } else {
 
@@ -415,31 +529,35 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
                     }
                 });
     }
+    private void showMessageDialog(String message, Runnable onOk) {
 
-private void showSuccessDialog(String message) {
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_success);
+        dialog.setCancelable(false);
 
-    Dialog dialog = new Dialog(this);
-    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-    dialog.setContentView(R.layout.dialog_success);
-    dialog.setCancelable(false);
+        TextView txtMessage = dialog.findViewById(R.id.txtMessage);
+        MaterialButton btnOk = dialog.findViewById(R.id.btnOk);
 
-    TextView txtMessage = dialog.findViewById(R.id.txtMessage);
-    MaterialButton btnOk = dialog.findViewById(R.id.btnOk);
+        txtMessage.setText(message);
 
-    txtMessage.setText(message);
+        btnOk.setOnClickListener(v -> {
+            dialog.dismiss();
 
-    btnOk.setOnClickListener(v -> {
-        dialog.dismiss();
-        loadWorkOrder();
-        finish();
-    });
+            if (onOk != null) {
+                onOk.run();
+            }
+        });
 
-    if (dialog.getWindow() != null) {
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(
+                    new ColorDrawable(Color.TRANSPARENT)
+            );
+        }
+
+        dialog.show();
     }
 
-    dialog.show();
-}
     private void loadWorkOrder() {
 
         workOrderApi.getWorkOrderDetails(workOrderId)
@@ -477,91 +595,152 @@ private void showSuccessDialog(String message) {
     }
 
     private void showWorkOrder(WorkOrder workOrder) {
+              var vehicle = workOrder.getServiceRequest().getVehicle();
+            var owner = workOrder.getServiceRequest().getUser();
 
-        txtOrderNumber.setText(workOrder.getOrderNumber());
+            txtOrderNumber.setText(workOrder.getOrderNumber());
+            txtStatus.setText(workOrder.getStatus());
+            txtVehicle.setText(vehicle.getBrand() + " " + vehicle.getModel());
+            txtLicensePlate.setText(vehicle.getLicensePlate());
+            txtYear.setText(String.valueOf(vehicle.getYear()));
+            txtFuelType.setText(vehicle.getFuelType());
+            txtMileage.setText(vehicle.getMileage() + " km");
+            txtVin.setText(vehicle.getVin());
 
-        txtStatus.setText(workOrder.getStatus());
+            txtOwnerName.setText(owner.getFirstName() + " " + owner.getLastName());
+            txtOwnerPhone.setText(owner.getPhoneNumber());
+            txtOwnerEmail.setText(owner.getEmail());
 
-        txtVehicle.setText(
-                workOrder.getServiceRequest()
-                        .getVehicle()
-                        .getBrand()
-                        + " " +
-                        workOrder.getServiceRequest()
-                                .getVehicle()
-                                .getModel()
-        );
+            txtProblemDescription.setText(workOrder.getServiceRequest().getProblemDescription());
+            etDiagnosis.setText(workOrder.getDiagnosis());
+            etFinalReport.setText(workOrder.getFinalReport());
+            txtEstimatedCost.setText(workOrder.getEstimatedCost() + " €");
+            txtFinalCost.setText(workOrder.getFinalCost() + " €");
 
-        txtLicensePlate.setText(
-                workOrder.getServiceRequest()
-                        .getVehicle()
-                        .getLicensePlate()
-        );
+    }
 
-        txtYear.setText(
-                String.valueOf(
-                        workOrder.getServiceRequest()
-                                .getVehicle()
-                                .getYear()
-                )
-        );
+    private void showAddPartDialog() {
 
-        txtFuelType.setText(
-                workOrder.getServiceRequest()
-                        .getVehicle()
-                        .getFuelType()
-        );
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        txtMileage.setText(
-                workOrder.getServiceRequest()
-                        .getVehicle()
-                        .getMileage() + " km"
-        );
+        View view = getLayoutInflater()
+                .inflate(R.layout.dialog_add_work_order_part, null);
 
-        txtVin.setText(
-                workOrder.getServiceRequest()
-                        .getVehicle()
-                        .getVin()
-        );
+        builder.setView(view);
 
-        txtOwnerName.setText(
-                workOrder.getServiceRequest()
-                        .getUser()
-                        .getFirstName()
-                        + " " +
-                        workOrder.getServiceRequest()
-                                .getUser()
-                                .getLastName()
-        );
+        AlertDialog dialog = builder.create();
 
-        txtOwnerPhone.setText(
-                workOrder.getServiceRequest()
-                        .getUser()
-                        .getPhoneNumber()
-        );
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
 
-        txtOwnerEmail.setText(
-                workOrder.getServiceRequest()
-                        .getUser()
-                        .getEmail()
-        );
+        AutoCompleteTextView actPart = view.findViewById(R.id.actPart);
+        TextInputEditText etQuantity = view.findViewById(R.id.etQuantity);
+        TextInputEditText etPartPrice = view.findViewById(R.id.etPartPrice);
 
-        txtProblemDescription.setText(
-                workOrder.getServiceRequest()
-                        .getProblemDescription()
-        );
+        MaterialButton btnCancel = view.findViewById(R.id.btnCancel);
+        MaterialButton btnAdd = view.findViewById(R.id.btnAdd);
 
-        etDiagnosis.setText(workOrder.getDiagnosis());
+        List<String> partNames = new ArrayList<>();
 
-        etFinalReport.setText(workOrder.getFinalReport());
+        for (Part part : parts) {
+            partNames.add(part.getName());
+        }
 
-        txtEstimatedCost.setText(
-                workOrder.getEstimatedCost() + " €"
-        );
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<>(
+                        this,
+                        android.R.layout.simple_dropdown_item_1line,
+                        partNames
+                );
 
-        txtFinalCost.setText(
-                workOrder.getFinalCost() + " €"
-        );
+        actPart.setAdapter(adapter);
+        actPart.setThreshold(1);
+        final Part[] selectedPart = {null};
+
+        actPart.setOnItemClickListener((parent, view1, position, id) -> {
+            selectedPart[0] = parts.get(position);
+            etPartPrice.setText(String.valueOf(selectedPart[0].getPrice()));
+        });
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        btnAdd.setOnClickListener(v -> {
+
+            if (selectedPart[0] == null) {
+                Toast.makeText(this, "Odaberite autodio.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (etQuantity.getText() == null ||
+                    etQuantity.getText().toString().trim().isEmpty()) {
+                etQuantity.setError("Unesite količinu");
+                return;
+            }
+
+            int quantity = Integer.parseInt(etQuantity.getText().toString().trim());
+
+            if (quantity <= 0) {
+                etQuantity.setError("Količina mora biti veća od 0");
+                return;
+            }
+
+            addPartToWorkOrder(selectedPart[0].getId(), quantity);
+
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+    private void addPartToWorkOrder(int partId, int quantity) {
+
+        WorkOrderPartCreateRequest request =
+                new WorkOrderPartCreateRequest(
+                        workOrderId,
+                        partId,
+                        quantity
+                );
+
+        workOrderPartApi.addPartToWorkOrder(request)
+                .enqueue(new Callback<WorkOrderPartItem>() {
+
+                    @Override
+                    public void onResponse(Call<WorkOrderPartItem> call,
+                                           Response<WorkOrderPartItem> response) {
+
+                        if (response.isSuccessful()) {
+
+                            showMessageDialog("Autodio je uspješno dodan.", () -> {
+                                loadWorkOrderParts();
+                                loadWorkOrder();
+                            });
+
+                            loadWorkOrderParts();
+                            loadWorkOrder();
+
+                        } else {
+
+                            Toast.makeText(
+                                    WorkOrderDetailsActivity.this,
+                                    "Greška kod dodavanja autodijela.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<WorkOrderPartItem> call,
+                                          Throwable t) {
+
+                        Toast.makeText(
+                                WorkOrderDetailsActivity.this,
+                                "Greška povezivanja.",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
+
+
     }
 
 

@@ -62,6 +62,7 @@ namespace DiplomskiAPI.Services
 
             _context.WorkOrderServices.Add(workOrderService);
             _context.SaveChanges();
+            UpdateWorkOrderEstimatedCost(request.WorkOrderId);
 
             return workOrderService;
         }
@@ -74,11 +75,29 @@ namespace DiplomskiAPI.Services
             {
                 return false;
             }
-
+            var workOrderId = item.WorkOrderId;
             _context.WorkOrderServices.Remove(item);
             _context.SaveChanges();
-
+            UpdateWorkOrderEstimatedCost(workOrderId);
             return true;
+        }
+        private void UpdateWorkOrderEstimatedCost(int workOrderId)
+        {
+            var workOrder = _context.WorkOrders.FirstOrDefault(w => w.Id == workOrderId);
+
+            if (workOrder == null)
+            {
+                return;
+            }
+
+            var servicesTotal = _context.WorkOrderServices
+                .Where(x => x.WorkOrderId == workOrderId)
+                .Sum(x => x.TotalPrice);
+
+            workOrder.EstimatedCost = servicesTotal;
+            workOrder.FinalCost = servicesTotal;
+
+            _context.SaveChanges();
         }
     }
 }

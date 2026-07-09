@@ -43,7 +43,7 @@ builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
 builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
 builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IWorkOrderServiceItemService, WorkOrderServiceItemService>();
-
+builder.Services.AddScoped<IWorkOrderPartItemService, WorkOrderPartItemService>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
