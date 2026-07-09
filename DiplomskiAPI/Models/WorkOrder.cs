@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using DiplomskiAPI.Models;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 [Table("work_orders")]
@@ -37,4 +38,11 @@ public class WorkOrder
 
     [Column("final_report")]
     public string? FinalReport { get; set; }
+
+    [ForeignKey("ServiceRequestId")]
+
+    public ServiceRequest ServiceRequest { get; set; } = null!;
+
+    [ForeignKey("AdminId")]
+    public User? Admin { get; set; }
 }

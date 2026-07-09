@@ -2,6 +2,7 @@
 using DiplomskiAPI.DTOs;
 using DiplomskiAPI.Interfaces;
 using DiplomskiAPI.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DiplomskiAPI.Services
 {
@@ -17,30 +18,27 @@ namespace DiplomskiAPI.Services
         public List<WorkOrderPartItemDto> GetByWorkOrderId(int workOrderId)
         {
             return _context.WorkOrderParts
-                .Where(w => w.WorkOrderId == workOrderId)
-                .Join(
-                    _context.Parts,
-                    item => item.PartId,
-                    part => part.Id,
-                    (item, part) => new WorkOrderPartItemDto
+                .Include(x => x.Part)
+                .Where(x => x.WorkOrderId == workOrderId)
+                .Select(x => new WorkOrderPartItemDto
+                {
+                    Id = x.Id,
+                    Quantity = x.Quantity,
+                    UnitPrice = x.UnitPrice,
+                    TotalPrice = x.TotalPrice,
+
+                    Part = new PartDto
                     {
-                        Id = item.Id,
-                        Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice,
-                        TotalPrice = item.TotalPrice,
-                        Part = new PartDto
-                        {
-                            Id = part.Id,
-                            Name = part.Name,
-                            Manufacturer = part.Manufacturer,
-                            Price = part.Price,
-                            StockQuantity = part.StockQuantity,
-                            MinimumStock = part.MinimumStock
-                        }
-                    })
+                        Id = x.Part.Id,
+                        Name = x.Part.Name,
+                        Manufacturer = x.Part.Manufacturer,
+                        Price = x.Part.Price,
+                        StockQuantity = x.Part.StockQuantity,
+                        MinimumStock = x.Part.MinimumStock
+                    }
+                })
                 .ToList();
         }
-
         public WorkOrderPartItem? AddPartToWorkOrder(WorkOrderPartCreateDto request)
         {
             var part = _context.Parts.FirstOrDefault(p => p.Id == request.PartId);
@@ -88,7 +86,7 @@ namespace DiplomskiAPI.Services
             return true;
         }
 
-        private void UpdateWorkOrderEstimatedCost(int workOrderId)
+        public void UpdateWorkOrderEstimatedCost(int workOrderId)
         {
             var workOrder = _context.WorkOrders.FirstOrDefault(w => w.Id == workOrderId);
 

@@ -24,5 +24,11 @@ namespace DiplomskiAPI.Models
 
         [Column("total_price")]
         public decimal TotalPrice { get; set; }
+
+        [ForeignKey(nameof(WorkOrderId))]
+        public WorkOrder WorkOrder { get; set; } = null!;
+
+        [ForeignKey(nameof(PartId))]
+        public Part Part { get; set; } = null!;
     }
 }

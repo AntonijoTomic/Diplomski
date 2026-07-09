@@ -36,5 +36,10 @@ namespace DiplomskiAPI.Models
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
+        public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
+
+        public ICollection<ServiceRequest> ServiceRequests { get; set; } = new List<ServiceRequest>();
+
+        public ICollection<WorkOrder> AssignedWorkOrders { get; set; } = new List<WorkOrder>();
     }
 }

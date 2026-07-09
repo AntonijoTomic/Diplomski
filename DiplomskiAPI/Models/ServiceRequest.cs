@@ -36,5 +36,13 @@ namespace DiplomskiAPI.Models
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
+
+        [ForeignKey(nameof(UserId))]
+        public User User { get; set; } = null!;
+
+        [ForeignKey(nameof(VehicleId))]
+        public Vehicle Vehicle { get; set; } = null!;
+
+        public WorkOrder? WorkOrder { get; set; }
     }
 }

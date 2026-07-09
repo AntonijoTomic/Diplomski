@@ -8,5 +8,6 @@ namespace DiplomskiAPI.Interfaces
         List<WorkOrderPartItemDto> GetByWorkOrderId(int workOrderId);
         WorkOrderPartItem? AddPartToWorkOrder(WorkOrderPartCreateDto request);
         bool Delete(int id);
+        void UpdateWorkOrderEstimatedCost(int workOrderId);
     }
 }

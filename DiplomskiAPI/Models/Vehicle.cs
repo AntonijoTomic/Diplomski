@@ -42,5 +42,10 @@ namespace DiplomskiAPI.Models
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
+
+        [ForeignKey(nameof(UserId))]
+        public User User { get; set; } = null!;
+
+        public ICollection<ServiceRequest> ServiceRequests { get; set; } = new List<ServiceRequest>();
     }
 }

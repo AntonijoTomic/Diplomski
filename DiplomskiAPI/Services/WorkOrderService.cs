@@ -2,6 +2,7 @@
 using DiplomskiAPI.DTOs;
 using DiplomskiAPI.Interfaces;
 using DiplomskiAPI.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DiplomskiAPI.Services
 {
@@ -14,9 +15,15 @@ namespace DiplomskiAPI.Services
             _context = context;
         }
 
-        public List<WorkOrder> GetAll()
+        public List<WorkOrderDto> GetAll()
         {
-            return _context.WorkOrders.ToList();
+            return _context.WorkOrders
+                .Include(w => w.ServiceRequest)
+                    .ThenInclude(sr => sr.Vehicle)
+                .Include(w => w.ServiceRequest)
+                    .ThenInclude(sr => sr.User)
+                .Select(w => MapToDetailedDto(w))
+                .ToList();
         }
 
         public WorkOrder? GetById(int id)
@@ -26,9 +33,8 @@ namespace DiplomskiAPI.Services
 
         public WorkOrderDto Create(WorkOrderCreateDto request)
         {
-
             var serviceRequest = _context.ServiceRequests
-                 .FirstOrDefault(sr => sr.Id == request.ServiceRequestId);
+                .FirstOrDefault(sr => sr.Id == request.ServiceRequestId);
 
             if (serviceRequest == null)
             {
@@ -36,7 +42,7 @@ namespace DiplomskiAPI.Services
             }
 
             var existingWorkOrder = _context.WorkOrders
-            .FirstOrDefault(w => w.ServiceRequestId == request.ServiceRequestId);
+                .FirstOrDefault(w => w.ServiceRequestId == request.ServiceRequestId);
 
             if (existingWorkOrder != null) // ako postoji vraca njega
             {
@@ -63,10 +69,9 @@ namespace DiplomskiAPI.Services
             _context.SaveChanges();
 
             return MapToDto(workOrder);
-
         }
 
-        public WorkOrder? UpdateStatus(int id, string status)
+        public WorkOrderDto? UpdateStatus(int id, string status)
         {
             var workOrder = _context.WorkOrders.FirstOrDefault(w => w.Id == id);
 
@@ -84,7 +89,7 @@ namespace DiplomskiAPI.Services
 
             _context.SaveChanges();
 
-            return workOrder;
+            return MapToDto(workOrder);
         }
 
         public bool Delete(int id)
@@ -104,99 +109,32 @@ namespace DiplomskiAPI.Services
 
         public List<WorkOrder> GetByVehicleId(int vehicleId)
         {
-                return _context.WorkOrders
-           .Join(
-               _context.ServiceRequests,
-               w => w.ServiceRequestId,
-               sr => sr.Id,
-               (w, sr) => new { w, sr }
-           )
-           .Where(x => x.sr.VehicleId == vehicleId)
-           .Select(x => x.w)
-           .ToList();
+            return _context.WorkOrders
+                .Include(w => w.ServiceRequest)
+                .Where(w => w.ServiceRequest.VehicleId == vehicleId)
+                .ToList();
         }
-        
 
         public List<WorkOrder> GetByUserId(int userId)
         {
             return _context.WorkOrders
-        .Join(
-            _context.ServiceRequests,
-            w => w.ServiceRequestId,
-            sr => sr.Id,
-            (w, sr) => new { w, sr }
-        )
-        .Where(x => x.sr.UserId == userId)
-        .Select(x => x.w)
-        .ToList();
+                .Include(w => w.ServiceRequest)
+                .Where(w => w.ServiceRequest.UserId == userId)
+                .ToList();
         }
 
         public WorkOrderDto? GetDetailsById(int id)
         {
-            return _context.WorkOrders
-                .Where(w => w.Id == id)
-                .Join(_context.ServiceRequests,
-                    w => w.ServiceRequestId,
-                    sr => sr.Id,
-                    (w, sr) => new { w, sr })
-                .Join(_context.Vehicles,
-                    x => x.sr.VehicleId,
-                    v => v.Id,
-                    (x, v) => new { x.w, x.sr, v })
-                .Join(_context.Users,
-                    x => x.sr.UserId,
-                    u => u.Id,
-                    (x, u) => new WorkOrderDto
-                    {
-                        Id = x.w.Id,
-                        OrderNumber = x.w.OrderNumber,
-                        ServiceRequestId = x.w.ServiceRequestId,
-                        AdminId = x.w.AdminId,
-                        Diagnosis = x.w.Diagnosis,
-                        Status = x.w.Status,
-                        EstimatedCost = x.w.EstimatedCost,
-                        FinalCost = x.w.FinalCost,
-                        OpenedAt = x.w.OpenedAt,
-                        ClosedAt = x.w.ClosedAt,
-                        FinalReport = x.w.FinalReport,
+            var workOrder = _context.WorkOrders
+                .Include(w => w.ServiceRequest)
+                    .ThenInclude(sr => sr.Vehicle)
+                .Include(w => w.ServiceRequest)
+                    .ThenInclude(sr => sr.User)
+                .FirstOrDefault(w => w.Id == id);
 
-                        ServiceRequest = new ServiceRequestDto
-                        {
-                            Id = x.sr.Id,
-                            ProblemDescription = x.sr.ProblemDescription,
-                            ServiceType = x.sr.ServiceType,
-                            Urgency = x.sr.Urgency,
-                            Status = x.sr.Status,
-                            Note = x.sr.Note,
-                            CreatedAt = x.sr.CreatedAt,
-                            DesiredDate = x.sr.DesiredDate,
+            return workOrder == null ? null : MapToDetailedDto(workOrder);
+        }
 
-                            Vehicle = new VehicleDto
-                            {
-                                Id = x.v.Id,
-                                Brand = x.v.Brand,
-                                Model = x.v.Model,
-                                Year = x.v.Year,
-                                LicensePlate = x.v.LicensePlate,
-                                Vin = x.v.Vin,
-                                FuelType = x.v.FuelType,
-                                Mileage = x.v.Mileage,
-                                RegistrationDate = x.v.RegistrationDate,
-                                Note = x.v.Note
-                            },
-
-                            User = new UserDto
-                            {
-                                Id = u.Id,
-                                FirstName = u.FirstName,
-                                LastName = u.LastName,
-                                Email = u.Email,
-                                PhoneNumber = u.Phone
-                            }
-                        }
-                    })
-                .FirstOrDefault();
-         }
         public WorkOrderDto? Update(int id, WorkOrderUpdateDto request)
         {
             var workOrder = _context.WorkOrders.FirstOrDefault(w => w.Id == id);
@@ -209,20 +147,7 @@ namespace DiplomskiAPI.Services
 
             _context.SaveChanges();
 
-            return new WorkOrderDto
-            {
-                Id = workOrder.Id,
-                OrderNumber = workOrder.OrderNumber,
-                ServiceRequestId = workOrder.ServiceRequestId,
-                AdminId = workOrder.AdminId,
-                Diagnosis = workOrder.Diagnosis,
-                Status = workOrder.Status,
-                EstimatedCost = workOrder.EstimatedCost,
-                FinalCost = workOrder.FinalCost,
-                OpenedAt = workOrder.OpenedAt,
-                ClosedAt = workOrder.ClosedAt,
-                FinalReport = workOrder.FinalReport
-            };
+            return MapToDto(workOrder);
         }
 
         private WorkOrderDto MapToDto(WorkOrder workOrder)
@@ -240,6 +165,63 @@ namespace DiplomskiAPI.Services
                 OpenedAt = workOrder.OpenedAt,
                 ClosedAt = workOrder.ClosedAt,
                 FinalReport = workOrder.FinalReport
+            };
+        }
+
+        private WorkOrderDto MapToDetailedDto(WorkOrder w)
+        {
+            var sr = w.ServiceRequest;
+            var v = sr.Vehicle;
+            var u = sr.User;
+
+            return new WorkOrderDto
+            {
+                Id = w.Id,
+                OrderNumber = w.OrderNumber,
+                ServiceRequestId = w.ServiceRequestId,
+                AdminId = w.AdminId,
+                Diagnosis = w.Diagnosis,
+                Status = w.Status,
+                EstimatedCost = w.EstimatedCost,
+                FinalCost = w.FinalCost,
+                OpenedAt = w.OpenedAt,
+                ClosedAt = w.ClosedAt,
+                FinalReport = w.FinalReport,
+
+                ServiceRequest = new ServiceRequestDto
+                {
+                    Id = sr.Id,
+                    ProblemDescription = sr.ProblemDescription,
+                    ServiceType = sr.ServiceType,
+                    Urgency = sr.Urgency,
+                    Status = sr.Status,
+                    Note = sr.Note,
+                    CreatedAt = sr.CreatedAt,
+                    DesiredDate = sr.DesiredDate,
+
+                    Vehicle = new VehicleDto
+                    {
+                        Id = v.Id,
+                        Brand = v.Brand,
+                        Model = v.Model,
+                        Year = v.Year,
+                        LicensePlate = v.LicensePlate,
+                        Vin = v.Vin,
+                        FuelType = v.FuelType,
+                        Mileage = v.Mileage,
+                        RegistrationDate = v.RegistrationDate,
+                        Note = v.Note
+                    },
+
+                    User = new UserDto
+                    {
+                        Id = u.Id,
+                        FirstName = u.FirstName,
+                        LastName = u.LastName,
+                        Email = u.Email,
+                        PhoneNumber = u.Phone
+                    }
+                }
             };
         }
     }

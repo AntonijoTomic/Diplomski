@@ -2,6 +2,7 @@
 using DiplomskiAPI.DTOs;
 using DiplomskiAPI.Interfaces;
 using DiplomskiAPI.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DiplomskiAPI.Services
 {
@@ -17,135 +18,119 @@ namespace DiplomskiAPI.Services
         public List<ServiceRequestDto> GetAll()
         {
             return _context.ServiceRequests
-     .Join(
-         _context.Vehicles,
-         sr => sr.VehicleId,
-         v => v.Id,
-         (sr, v) => new { sr, v })
-     .Join(
-         _context.Users,
-         x => x.sr.UserId,
-         u => u.Id,
-         (x, u) => new ServiceRequestDto
-         {
-             Id = x.sr.Id,
-             Vehicle = new VehicleDto
-             {
-                 Id = x.v.Id,
-                 Brand = x.v.Brand,
-                 Model = x.v.Model,
-                 Year = x.v.Year,
-                 LicensePlate = x.v.LicensePlate,
-                 Vin = x.v.Vin,
-                 FuelType = x.v.FuelType,
-                 Mileage = x.v.Mileage,
-                 RegistrationDate = x.v.RegistrationDate,
-                 Note = x.v.Note
-             },
-             ProblemDescription = x.sr.ProblemDescription,
-             ServiceType = x.sr.ServiceType,
-             Urgency = x.sr.Urgency,
-             Status = x.sr.Status,
-             Note = x.sr.Note,
-             CreatedAt = x.sr.CreatedAt,
+                .Include(sr => sr.Vehicle)
+                .Include(sr => sr.User)
+                .Select(sr => new ServiceRequestDto
+                {
+                    Id = sr.Id,
+                    ProblemDescription = sr.ProblemDescription,
+                    ServiceType = sr.ServiceType,
+                    Urgency = sr.Urgency,
+                    Status = sr.Status,
+                    Note = sr.Note,
+                    CreatedAt = sr.CreatedAt,
+                    DesiredDate = sr.DesiredDate,
 
-             User = new UserDto
-             {
-                 Id = u.Id,
-                 FirstName = u.FirstName,
-                 LastName = u.LastName,
-                 Email = u.Email,
-                 PhoneNumber = u.Phone
-             }
-         })
-         .OrderByDescending(x => x.CreatedAt)
-        .ToList();
+                    Vehicle = new VehicleDto
+                    {
+                        Id = sr.Vehicle.Id,
+                        Brand = sr.Vehicle.Brand,
+                        Model = sr.Vehicle.Model,
+                        Year = sr.Vehicle.Year,
+                        LicensePlate = sr.Vehicle.LicensePlate,
+                        Vin = sr.Vehicle.Vin,
+                        FuelType = sr.Vehicle.FuelType,
+                        Mileage = sr.Vehicle.Mileage,
+                        RegistrationDate = sr.Vehicle.RegistrationDate,
+                        Note = sr.Vehicle.Note
+                    },
+
+                    User = new UserDto
+                    {
+                        Id = sr.User.Id,
+                        FirstName = sr.User.FirstName,
+                        LastName = sr.User.LastName,
+                        Email = sr.User.Email,
+                        PhoneNumber = sr.User.Phone
+                    }
+                })
+                .OrderByDescending(x => x.CreatedAt)
+                .ToList();
         }
 
         public List<ServiceRequestDto> GetByUserId(int userId)
         {
             return _context.ServiceRequests
+                .Include(sr => sr.Vehicle)
                 .Where(sr => sr.UserId == userId)
-                .Join(
-                    _context.Vehicles,
-                    sr => sr.VehicleId,
-                    v => v.Id,
-                    (sr, v) => new ServiceRequestDto
+                .Select(sr => new ServiceRequestDto
+                {
+                    Id = sr.Id,
+                    ProblemDescription = sr.ProblemDescription,
+                    ServiceType = sr.ServiceType,
+                    Urgency = sr.Urgency,
+                    Status = sr.Status,
+                    CreatedAt = sr.CreatedAt,
+
+                    Vehicle = new VehicleDto
                     {
-                        Id = sr.Id,
-                        Vehicle = new VehicleDto
-                        {
-                            Id = v.Id,
-                            Brand = v.Brand,
-                            Model = v.Model,
-                            Year = v.Year,
-                            LicensePlate =v.LicensePlate,
-                            Vin = v.Vin,
-                            FuelType = v.FuelType,
-                            Mileage = v.Mileage,
-                            RegistrationDate = v.RegistrationDate,
-                            Note = v.Note
-                        },
-                        ProblemDescription = sr.ProblemDescription,
-                        ServiceType = sr.ServiceType,
-                        Urgency = sr.Urgency,
-                        Status = sr.Status,
-                        CreatedAt = sr.CreatedAt
-                    })
+                        Id = sr.Vehicle.Id,
+                        Brand = sr.Vehicle.Brand,
+                        Model = sr.Vehicle.Model,
+                        Year = sr.Vehicle.Year,
+                        LicensePlate = sr.Vehicle.LicensePlate,
+                        Vin = sr.Vehicle.Vin,
+                        FuelType = sr.Vehicle.FuelType,
+                        Mileage = sr.Vehicle.Mileage,
+                        RegistrationDate = sr.Vehicle.RegistrationDate,
+                        Note = sr.Vehicle.Note
+                    }
+                })
                 .OrderByDescending(x => x.CreatedAt)
                 .ToList();
         }
-
         public ServiceRequestDto? GetById(int id)
         {
             return _context.ServiceRequests
+                .Include(sr => sr.Vehicle)
+                .Include(sr => sr.User)
                 .Where(sr => sr.Id == id)
-                .Join(
-                    _context.Vehicles,
-                    sr => sr.VehicleId,
-                    v => v.Id,
-                    (sr, v) => new { sr, v })
-                .Join(
-                    _context.Users,
-                    x => x.sr.UserId,
-                    u => u.Id,
-                    (x, u) => new ServiceRequestDto
+                .Select(sr => new ServiceRequestDto
+                {
+                    Id = sr.Id,
+                    ProblemDescription = sr.ProblemDescription,
+                    ServiceType = sr.ServiceType,
+                    Urgency = sr.Urgency,
+                    Status = sr.Status,
+                    Note = sr.Note,
+                    CreatedAt = sr.CreatedAt,
+                    DesiredDate = sr.DesiredDate,
+
+                    Vehicle = new VehicleDto
                     {
-                        Id = x.sr.Id,
+                        Id = sr.Vehicle.Id,
+                        Brand = sr.Vehicle.Brand,
+                        Model = sr.Vehicle.Model,
+                        Year = sr.Vehicle.Year,
+                        LicensePlate = sr.Vehicle.LicensePlate,
+                        Vin = sr.Vehicle.Vin,
+                        FuelType = sr.Vehicle.FuelType,
+                        Mileage = sr.Vehicle.Mileage,
+                        RegistrationDate = sr.Vehicle.RegistrationDate,
+                        Note = sr.Vehicle.Note
+                    },
 
-                        ProblemDescription = x.sr.ProblemDescription,
-                        ServiceType = x.sr.ServiceType,
-                        Urgency = x.sr.Urgency,
-                        Status = x.sr.Status,
-                        Note = x.sr.Note,
-                        CreatedAt = x.sr.CreatedAt,
-                        DesiredDate = x.sr.DesiredDate,
-
-                        User = new UserDto
-                        {
-                            Id = u.Id,
-                            FirstName = u.FirstName,
-                            LastName = u.LastName,
-                            Email = u.Email,
-                            PhoneNumber = u.Phone
-                        },
-                        Vehicle = new VehicleDto
-                        {
-                            Id = x.v.Id,
-                            Brand = x.v.Brand,
-                            Model = x.v.Model,
-                            Year = x.v.Year,
-                            LicensePlate = x.v.LicensePlate,
-                            Vin = x.v.Vin,
-                            FuelType = x.v.FuelType,
-                            Mileage = x.v.Mileage,
-                            RegistrationDate = x.v.RegistrationDate,
-                            Note = x.v.Note
-                        }
-                    })
+                    User = new UserDto
+                    {
+                        Id = sr.User.Id,
+                        FirstName = sr.User.FirstName,
+                        LastName = sr.User.LastName,
+                        Email = sr.User.Email,
+                        PhoneNumber = sr.User.Phone
+                    }
+                })
                 .FirstOrDefault();
         }
-
         public ServiceRequest Create(ServiceRequestCreateDto request)
         {
             var serviceRequest = new ServiceRequest

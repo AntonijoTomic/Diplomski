@@ -21,5 +21,7 @@ namespace DiplomskiAPI.Models
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
+
+        public ICollection<WorkOrderServiceItem> WorkOrderServices { get; set; } = new List<WorkOrderServiceItem>();
     }
 }

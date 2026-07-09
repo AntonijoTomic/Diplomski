@@ -5,13 +5,13 @@ namespace DiplomskiAPI.Interfaces
 {
     public interface IWorkOrderService
     {
-        List<WorkOrder> GetAll();
+        List<WorkOrderDto> GetAll();
 
         WorkOrder? GetById(int id);
 
         WorkOrderDto Create(WorkOrderCreateDto request);
 
-        WorkOrder? UpdateStatus(int id, string status);
+        WorkOrderDto? UpdateStatus(int id, string status);
 
         bool Delete(int id);
 

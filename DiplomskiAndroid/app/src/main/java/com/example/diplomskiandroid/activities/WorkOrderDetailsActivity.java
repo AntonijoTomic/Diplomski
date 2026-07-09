@@ -150,9 +150,10 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
 
         rvParts.setAdapter(partAdapter);
 
-        loadWorkOrderParts();
+
         loadWorkOrder();
         loadWorkOrderServices();
+        loadWorkOrderParts();
     }
 
     private void loadParts() {
@@ -463,7 +464,8 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
 
                             loadWorkOrderServices();
                             loadWorkOrder();
-                                            }
+
+                        }
                         else {
                             Toast.makeText(
                                     WorkOrderDetailsActivity.this,
@@ -714,9 +716,6 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
                                 loadWorkOrderParts();
                                 loadWorkOrder();
                             });
-
-                            loadWorkOrderParts();
-                            loadWorkOrder();
 
                         } else {
 

@@ -2,42 +2,42 @@
 using DiplomskiAPI.DTOs;
 using DiplomskiAPI.Interfaces;
 using DiplomskiAPI.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DiplomskiAPI.Services
 {
     public class WorkOrderServiceItemService : IWorkOrderServiceItemService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWorkOrderPartItemService _WorkOrderServiceItemService;
 
-        public WorkOrderServiceItemService(ApplicationDbContext context)
+        public WorkOrderServiceItemService(ApplicationDbContext context, IWorkOrderPartItemService workOrderServiceItemService)
         {
             _context = context;
+            _WorkOrderServiceItemService = workOrderServiceItemService;
         }
 
         public List<WorkOrderServiceItemDto> GetByWorkOrderId(int workOrderId)
         {
             return _context.WorkOrderServices
-                .Where(w => w.WorkOrderId == workOrderId)
-                .Join(
-                    _context.Services,
-                    item => item.ServiceId,
-                    service => service.Id,
-                    (item, service) => new WorkOrderServiceItemDto
-                    {
-                        Id = item.Id,
-                        Hours = item.Hours,
-                        HourlyRate = item.HourlyRate,
-                        TotalPrice = item.TotalPrice,
+             .Include(x => x.Service)
+             .Where(x => x.WorkOrderId == workOrderId)
+             .Select(x => new WorkOrderServiceItemDto
+             {
+                 Id = x.Id,
+                 Hours = x.Hours,
+                 HourlyRate = x.HourlyRate,
+                 TotalPrice = x.TotalPrice,
 
-                        Service = new ServiceDto
-                        {
-                            Id = service.Id,
-                            Name = service.Name,
-                            Description = service.Description,
-                            Price = service.Price
-                        }
-                    })
-                .ToList();
+                 Service = new ServiceDto
+                 {
+                     Id = x.Service.Id,
+                     Name = x.Service.Name,
+                     Description = x.Service.Description,
+                     Price = x.Service.Price
+                 }
+             })
+             .ToList();
         }
 
         public WorkOrderServiceItem? AddServiceToWorkOrder(WorkOrderServiceCreateDto request)
@@ -62,7 +62,7 @@ namespace DiplomskiAPI.Services
 
             _context.WorkOrderServices.Add(workOrderService);
             _context.SaveChanges();
-            UpdateWorkOrderEstimatedCost(request.WorkOrderId);
+            _WorkOrderServiceItemService.UpdateWorkOrderEstimatedCost(request.WorkOrderId);
 
             return workOrderService;
         }
@@ -78,26 +78,9 @@ namespace DiplomskiAPI.Services
             var workOrderId = item.WorkOrderId;
             _context.WorkOrderServices.Remove(item);
             _context.SaveChanges();
-            UpdateWorkOrderEstimatedCost(workOrderId);
+            _WorkOrderServiceItemService.UpdateWorkOrderEstimatedCost(workOrderId);
             return true;
         }
-        private void UpdateWorkOrderEstimatedCost(int workOrderId)
-        {
-            var workOrder = _context.WorkOrders.FirstOrDefault(w => w.Id == workOrderId);
-
-            if (workOrder == null)
-            {
-                return;
-            }
-
-            var servicesTotal = _context.WorkOrderServices
-                .Where(x => x.WorkOrderId == workOrderId)
-                .Sum(x => x.TotalPrice);
-
-            workOrder.EstimatedCost = servicesTotal;
-            workOrder.FinalCost = servicesTotal;
-
-            _context.SaveChanges();
-        }
+       
     }
 }
