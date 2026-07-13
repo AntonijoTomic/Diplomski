@@ -18,7 +18,7 @@ public class WorkOrderServiceAdapter extends RecyclerView.Adapter<WorkOrderServi
 
     private final List<WorkOrderServiceItem> services;
     private final OnServiceDeleteListener listener;
-
+    private boolean completed = false;
      public WorkOrderServiceAdapter(List<WorkOrderServiceItem> services,
                                    OnServiceDeleteListener listener) {
         this.services = services;
@@ -61,6 +61,9 @@ public class WorkOrderServiceAdapter extends RecyclerView.Adapter<WorkOrderServi
                 listener.onDelete(item);
             }
         });
+        holder.btnDeleteService.setVisibility(
+                completed ? View.GONE : View.VISIBLE
+        );
     }
 
     @Override
@@ -87,6 +90,11 @@ public class WorkOrderServiceAdapter extends RecyclerView.Adapter<WorkOrderServi
             txtHours = itemView.findViewById(R.id.txtHours);
             txtTotalPrice = itemView.findViewById(R.id.txtTotalPrice);
             btnDeleteService = itemView.findViewById(R.id.btnDeleteService);
+
         }
+    }
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+        notifyDataSetChanged();
     }
 }

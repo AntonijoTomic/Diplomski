@@ -18,7 +18,7 @@ public class WorkOrderPartAdapter extends RecyclerView.Adapter<WorkOrderPartAdap
 
     private final List<WorkOrderPartItem> parts;
     private final OnPartDeleteListener listener;
-
+    private boolean completed = false;
     public WorkOrderPartAdapter(List<WorkOrderPartItem> parts,
                                 OnPartDeleteListener listener) {
         this.parts = parts;
@@ -57,6 +57,9 @@ public class WorkOrderPartAdapter extends RecyclerView.Adapter<WorkOrderPartAdap
                 listener.onDelete(item);
             }
         });
+        holder.btnDeletePart.setVisibility(
+                completed ? View.GONE : View.VISIBLE
+        );
     }
 
     @Override
@@ -85,5 +88,9 @@ public class WorkOrderPartAdapter extends RecyclerView.Adapter<WorkOrderPartAdap
             txtPartTotalPrice = itemView.findViewById(R.id.txtPartTotalPrice);
             btnDeletePart = itemView.findViewById(R.id.btnDeletePart);
         }
+    }
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+        notifyDataSetChanged();
     }
 }

@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.widget.Toast;
 import com.example.diplomskiandroid.R;
+import com.example.diplomskiandroid.StatusHelper;
 import com.example.diplomskiandroid.adapters.WorkOrderPartAdapter;
 import com.example.diplomskiandroid.adapters.WorkOrderServiceAdapter;
 import com.example.diplomskiandroid.api.ApiClient;
@@ -54,7 +55,7 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
             txtEstimatedCost, txtFinalCost, txtNoServices, txtNoParts, btnBack;
     private TextInputEditText etDiagnosis, etFinalReport;
     private RecyclerView rvServices, rvParts;
-    private MaterialButton btnSave, btnAddService, btnAddPart;
+    private MaterialButton btnSave, btnAddService, btnAddPart, btnCompleteWorkOrder;
     private WorkOrderServiceAdapter serviceAdapter;
     private WorkOrderPartAdapter partAdapter;
     private WorkOrderApi workOrderApi;
@@ -121,6 +122,10 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
         workOrderPartApi = ApiClient.getClient(this)
                 .create(WorkOrderPartApi.class);
 
+        btnCompleteWorkOrder =
+                findViewById(R.id.btnCompleteWorkOrder);
+        btnCompleteWorkOrder.setOnClickListener(v -> completeWorkOrder());
+
         btnBack = findViewById(R.id.txtBack);
         btnBack.setOnClickListener(v -> finish());
         btnSave.setOnClickListener(v -> updateWorkOrder());
@@ -156,6 +161,46 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
         loadWorkOrderParts();
     }
 
+    private void completeWorkOrder() {
+
+        workOrderApi.updateWorkOrderStatus(
+                workOrderId,
+                "COMPLETED"
+        ).enqueue(new Callback<WorkOrder>() {
+
+            @Override
+            public void onResponse(Call<WorkOrder> call,
+                                   Response<WorkOrder> response) {
+
+                if (response.isSuccessful()) {
+
+                    loadWorkOrder();
+
+                    showMessageDialog(
+                            "Radni nalog je uspješno završen.",
+                            null
+                    );
+
+                } else {
+                    Toast.makeText(
+                            WorkOrderDetailsActivity.this,
+                            "Greška kod završavanja radnog naloga.",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<WorkOrder> call, Throwable t) {
+                Toast.makeText(
+                        WorkOrderDetailsActivity.this,
+                        "Greška povezivanja.",
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+        });
+
+    }
     private void loadParts() {
 
         partApi.getAllParts().enqueue(new Callback<List<Part>>() {
@@ -601,7 +646,24 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
             var owner = workOrder.getServiceRequest().getUser();
 
             txtOrderNumber.setText(workOrder.getOrderNumber());
-            txtStatus.setText(workOrder.getStatus());
+            StatusHelper.applyStatus(
+                txtStatus,
+                workOrder.getStatus()
+        );
+
+        boolean completed =
+                "COMPLETED".equalsIgnoreCase(workOrder.getStatus());
+
+        etDiagnosis.setEnabled(!completed);
+        etFinalReport.setEnabled(!completed);
+
+        btnSave.setVisibility(completed ? View.GONE : View.VISIBLE);
+        btnAddService.setVisibility(completed ? View.GONE : View.VISIBLE);
+        btnAddPart.setVisibility(completed ? View.GONE : View.VISIBLE);
+        btnCompleteWorkOrder.setVisibility(completed ? View.GONE : View.VISIBLE);
+        serviceAdapter.setCompleted(completed);
+        partAdapter.setCompleted(completed);
+
             txtVehicle.setText(vehicle.getBrand() + " " + vehicle.getModel());
             txtLicensePlate.setText(vehicle.getLicensePlate());
             txtYear.setText(String.valueOf(vehicle.getYear()));
@@ -661,8 +723,21 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
         final Part[] selectedPart = {null};
 
         actPart.setOnItemClickListener((parent, view1, position, id) -> {
-            selectedPart[0] = parts.get(position);
-            etPartPrice.setText(String.valueOf(selectedPart[0].getPrice()));
+
+            String selectedName = parent.getItemAtPosition(position).toString();
+
+            for (Part part : parts) {
+                if (part.getName().equals(selectedName)) {
+                    selectedPart[0] = part;
+                    break;
+                }
+            }
+
+            if (selectedPart[0] != null) {
+                etPartPrice.setText(
+                        String.valueOf(selectedPart[0].getPrice())
+                );
+            }
         });
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());

@@ -1,66 +1,186 @@
 package com.example.diplomskiandroid.fragments;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.diplomskiandroid.R;
+import com.example.diplomskiandroid.adapters.WorkOrderAdapter;
+import com.example.diplomskiandroid.api.ApiClient;
+import com.example.diplomskiandroid.api.WorkOrderApi;
+import com.example.diplomskiandroid.models.WorkOrder;
+import com.google.android.material.chip.Chip;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link WorkOrdersFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class WorkOrdersFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private RecyclerView rvWorkOrders;
+    private TextView txtEmpty;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private WorkOrderAdapter adapter;
+    private final List<WorkOrder> workOrders = new ArrayList<>();
+    private final List<WorkOrder> allWorkOrders = new ArrayList<>();
 
-    public WorkOrdersFragment() {
-        // Required empty public constructor
-    }
+    private WorkOrderApi workOrderApi;
+    Chip chipAll;
+    Chip chipOpen;
+    Chip chipCompleted;
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment WorkOrdersFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static WorkOrdersFragment newInstance(String param1, String param2) {
-        WorkOrdersFragment fragment = new WorkOrdersFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
+    @Nullable
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_work_orders, container, false);
+
+        View view = inflater.inflate(
+                R.layout.fragment_work_orders,
+                container,
+                false
+        );
+
+        rvWorkOrders = view.findViewById(R.id.rvWorkOrders);
+        txtEmpty = view.findViewById(R.id.txtEmpty);
+
+        chipAll = view.findViewById(R.id.chipAll);
+        chipOpen = view.findViewById(R.id.chipOpen);
+        chipCompleted = view.findViewById(R.id.chipCompleted);
+        chipAll.setOnClickListener(v -> filterWorkOrders("ALL"));
+
+        chipOpen.setOnClickListener(v -> filterWorkOrders("OPEN"));
+
+        chipCompleted.setOnClickListener(v -> filterWorkOrders("COMPLETED"));
+
+
+        rvWorkOrders.setLayoutManager(
+                new LinearLayoutManager(requireContext())
+        );
+
+        adapter = new WorkOrderAdapter(
+                requireContext(),
+                workOrders
+        );
+
+        rvWorkOrders.setAdapter(adapter);
+
+        workOrderApi = ApiClient
+                .getClient(requireContext())
+                .create(WorkOrderApi.class);
+
+        loadWorkOrders();
+
+        return view;
+    }
+    private void filterWorkOrders(String filter) {
+
+        workOrders.clear();
+
+        switch (filter) {
+
+            case "OPEN":
+
+                for (WorkOrder workOrder : allWorkOrders) {
+
+                    if (workOrder.getStatus().equals("OPEN")
+                            || workOrder.getStatus().equals("IN_PROGRESS")) {
+
+                        workOrders.add(workOrder);
+                    }
+                }
+
+                break;
+
+            case "COMPLETED":
+
+                for (WorkOrder workOrder : allWorkOrders) {
+
+                    if (workOrder.getStatus().equals("COMPLETED")) {
+                        workOrders.add(workOrder);
+                    }
+                }
+
+                break;
+
+            default:
+
+                workOrders.addAll(allWorkOrders);
+                break;
+        }
+
+        adapter.notifyDataSetChanged();
+
+        txtEmpty.setVisibility(
+                workOrders.isEmpty()
+                        ? View.VISIBLE
+                        : View.GONE
+        );
+    }
+    private void loadWorkOrders() {
+
+        workOrderApi.getAllWorkOrders()
+                .enqueue(new Callback<List<WorkOrder>>() {
+
+                    @Override
+                    public void onResponse(Call<List<WorkOrder>> call,
+                                           Response<List<WorkOrder>> response) {
+
+                        if (response.isSuccessful()
+                                && response.body() != null) {
+
+                            allWorkOrders.clear();
+                            allWorkOrders.addAll(response.body());
+
+                            workOrders.clear();
+                            workOrders.addAll(allWorkOrders);
+                            adapter.notifyDataSetChanged();
+
+                            txtEmpty.setVisibility(
+                                    workOrders.isEmpty()
+                                            ? View.VISIBLE
+                                            : View.GONE
+                            );
+
+                        } else {
+
+                            Toast.makeText(
+                                    requireContext(),
+                                    "Greška kod dohvaćanja radnih naloga.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<WorkOrder>> call,
+                                          Throwable t) {
+
+                        Toast.makeText(
+                                requireContext(),
+                                t.getMessage(),
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadWorkOrders();
     }
 }

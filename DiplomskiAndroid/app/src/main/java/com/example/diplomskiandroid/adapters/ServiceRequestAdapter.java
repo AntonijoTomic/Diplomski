@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.diplomskiandroid.R;
+import com.example.diplomskiandroid.StatusHelper;
 import com.example.diplomskiandroid.activities.AddServiceRequestActivity;
 import com.example.diplomskiandroid.activities.ServiceRequestDetailsActivity;
 import com.example.diplomskiandroid.api.ApiClient;
@@ -71,18 +72,16 @@ public class ServiceRequestAdapter extends RecyclerView.Adapter<ServiceRequestAd
 
         holder.txtCreatedAt.setText("📅 " + formatDate(request.getCreatedAt()));
 
-        holder.txtRequestStatus.setText(formatStatus(request.getStatus()));
+        StatusHelper.applyStatus(
+                holder.txtRequestStatus,
+                request.getStatus()
+        );
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), ServiceRequestDetailsActivity.class);
             intent.putExtra("requestId", request.getId());
             v.getContext().startActivity(intent);
         });
 
-        holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(v.getContext(), ServiceRequestDetailsActivity.class);
-            intent.putExtra("requestId", request.getId());
-            v.getContext().startActivity(intent);
-        });
 
         holder.itemView.setOnLongClickListener(v -> {
             showRequestOptions(v, request);
@@ -196,22 +195,6 @@ public class ServiceRequestAdapter extends RecyclerView.Adapter<ServiceRequestAd
                         Toast.LENGTH_SHORT).show();
             }
         });
-    }
-    private String formatStatus(String status) {
-        if (status == null) return "-";
-
-        switch (status) {
-            case "PENDING":
-                return "Na čekanju";
-            case "IN_PROGRESS":
-                return "U obradi";
-            case "COMPLETED":
-                return "Završeno";
-            case "REJECTED":
-                return "Odbijeno";
-            default:
-                return status;
-        }
     }
 
     @Override

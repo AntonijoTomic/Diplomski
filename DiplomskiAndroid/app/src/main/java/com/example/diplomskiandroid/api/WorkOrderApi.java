@@ -4,6 +4,8 @@ import com.example.diplomskiandroid.models.WorkOrder;
 import com.example.diplomskiandroid.models.WorkOrderCreateRequest;
 import com.example.diplomskiandroid.models.WorkOrderUpdateRequest;
 
+import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -27,5 +29,12 @@ public interface WorkOrderApi {
             @Body WorkOrderUpdateRequest request
     );
 
+    @GET("api/WorkOrders")
+    Call<List<WorkOrder>> getAllWorkOrders();
 
+    @PUT("api/WorkOrders/{id}/status")
+    Call<WorkOrder> updateWorkOrderStatus(
+            @Path("id") int id,
+            @Body String status
+    );
 }

@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.diplomskiandroid.R;
+import com.example.diplomskiandroid.StatusHelper;
 import com.example.diplomskiandroid.activities.AdminServiceRequestDetailsActivity;
 import com.example.diplomskiandroid.activities.ServiceRequestDetailsActivity;
 import com.example.diplomskiandroid.models.ServiceRequest;
@@ -55,8 +56,10 @@ public class AdminServiceRequestAdapter extends RecyclerView.Adapter<AdminServic
         holder.txtDescription.setText(request.getProblemDescription());
         holder.txtCreatedAt.setText(formatDate(request.getCreatedAt()));
         holder.txtPriority.setText(request.getUrgency() != null ? request.getUrgency() : "-");
-        holder.txtRequestStatus.setText(formatStatus(request.getStatus()));
-        setStatusBackground(holder, request.getStatus());
+        StatusHelper.applyStatus(
+                holder.txtRequestStatus,
+                request.getStatus()
+        );
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, AdminServiceRequestDetailsActivity.class);
@@ -77,22 +80,6 @@ public class AdminServiceRequestAdapter extends RecyclerView.Adapter<AdminServic
         return requests.size();
     }
 
-    private String formatStatus(String status) {
-        if (status == null) return "-";
-
-        switch (status) {
-            case "PENDING":
-                return "Na čekanju";
-            case "IN_PROGRESS":
-                return "U obradi";
-            case "COMPLETED":
-                return "Završeno";
-            case "REJECTED":
-                return "Odbijeno";
-            default:
-                return status;
-        }
-    }
 
     private String formatDate(String date) {
         if (date != null && date.length() >= 10) {
@@ -121,30 +108,6 @@ public class AdminServiceRequestAdapter extends RecyclerView.Adapter<AdminServic
             txtCreatedAt = itemView.findViewById(R.id.txtCreatedAt);
             txtPriority = itemView.findViewById(R.id.txtPriority);
             txtRequestStatus = itemView.findViewById(R.id.txtRequestStatus);
-        }
-    }
-    private void setStatusBackground(ViewHolder holder, String status) {
-        if (status == null) {
-            holder.txtRequestStatus.setBackgroundResource(R.drawable.bg_status_pending);
-            return;
-        }
-
-        switch (status) {
-            case "PENDING":
-                holder.txtRequestStatus.setBackgroundResource(R.drawable.bg_status_pending);
-                break;
-            case "IN_PROGRESS":
-                holder.txtRequestStatus.setBackgroundResource(R.drawable.bg_status_in_progress);
-                break;
-            case "COMPLETED":
-                holder.txtRequestStatus.setBackgroundResource(R.drawable.bg_status_completed);
-                break;
-            case "REJECTED":
-                holder.txtRequestStatus.setBackgroundResource(R.drawable.bg_status_rejected);
-                break;
-            default:
-                holder.txtRequestStatus.setBackgroundResource(R.drawable.bg_status_pending);
-                break;
         }
     }
 }

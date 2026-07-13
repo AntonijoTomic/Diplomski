@@ -17,13 +17,18 @@ namespace DiplomskiAPI.Services
 
         public List<WorkOrderDto> GetAll()
         {
-            return _context.WorkOrders
+        
+            var workOrders = _context.WorkOrders
                 .Include(w => w.ServiceRequest)
                     .ThenInclude(sr => sr.Vehicle)
                 .Include(w => w.ServiceRequest)
                     .ThenInclude(sr => sr.User)
-                .Select(w => MapToDetailedDto(w))
                 .ToList();
+
+            return workOrders
+                .Select(MapToDetailedDto)
+                .ToList();
+        
         }
 
         public WorkOrder? GetById(int id)
@@ -73,7 +78,9 @@ namespace DiplomskiAPI.Services
 
         public WorkOrderDto? UpdateStatus(int id, string status)
         {
-            var workOrder = _context.WorkOrders.FirstOrDefault(w => w.Id == id);
+            var workOrder = _context.WorkOrders
+                .Include(w => w.ServiceRequest)
+                .FirstOrDefault(w => w.Id == id);
 
             if (workOrder == null)
             {
@@ -85,6 +92,11 @@ namespace DiplomskiAPI.Services
             if (status == "COMPLETED")
             {
                 workOrder.ClosedAt = DateTime.UtcNow;
+                workOrder.ServiceRequest.Status = "COMPLETED";
+            }
+            else
+            {
+                workOrder.ClosedAt = null;
             }
 
             _context.SaveChanges();

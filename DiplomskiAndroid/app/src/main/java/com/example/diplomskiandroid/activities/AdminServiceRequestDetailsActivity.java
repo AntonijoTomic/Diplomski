@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
 import com.example.diplomskiandroid.R;
+import com.example.diplomskiandroid.StatusHelper;
 import com.example.diplomskiandroid.api.ApiClient;
 import com.example.diplomskiandroid.api.ServiceRequestApi;
 import com.example.diplomskiandroid.api.WorkOrderApi;
@@ -215,8 +216,10 @@ public class AdminServiceRequestDetailsActivity extends AppCompatActivity {
             txtVin.setText(vehicle.getVin());
         }
 
-        txtStatus.setText(formatStatus(request.getStatus()));
-         setStatusBackground(request.getStatus());
+        StatusHelper.applyStatus(
+                txtStatus,
+                request.getStatus()
+        );
         updateActionLayout(request.getStatus());
 
 
@@ -278,56 +281,7 @@ public class AdminServiceRequestDetailsActivity extends AppCompatActivity {
         }
     }
 
-    private void setStatusBackground(String status) {
-        if (status == null) {
-            txtStatus.setBackgroundResource(R.drawable.bg_status_pending);
-            return;
-        }
 
-        switch (status) {
-            case "PENDING":
-                txtStatus.setBackgroundResource(R.drawable.bg_status_pending);
-                break;
-
-            case "IN_PROGRESS":
-                txtStatus.setBackgroundResource(R.drawable.bg_status_in_progress);
-                break;
-
-            case "COMPLETED":
-                txtStatus.setBackgroundResource(R.drawable.bg_status_completed);
-                break;
-
-            case "REJECTED":
-                txtStatus.setBackgroundResource(R.drawable.bg_status_rejected);
-                break;
-
-            default:
-                txtStatus.setBackgroundResource(R.drawable.bg_status_pending);
-                break;
-        }
-    }
-    private String formatStatus(String status) {
-
-        if (status == null) return "-";
-
-        switch (status) {
-
-            case "PENDING":
-                return "Na čekanju";
-
-            case "IN_PROGRESS":
-                return "U obradi";
-
-            case "COMPLETED":
-                return "Završeno";
-
-            case "REJECTED":
-                return "Odbijeno";
-
-            default:
-                return status;
-        }
-    }
     private String formatDate(String date) {
 
         if (date == null || date.length() < 10)
