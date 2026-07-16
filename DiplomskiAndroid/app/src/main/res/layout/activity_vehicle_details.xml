@@ -283,15 +283,22 @@
                     android:textSize="18sp" />
 
                 <TextView
-                    android:id="@+id/txtServiceEmpty"
+                    android:id="@+id/txtHistoryEmpty"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:text="Servisni podaci još nisu dostupni za ovo vozilo."
+                    android:background="@drawable/bg_stat_card"
+                    android:padding="16dp"
+                    android:text="Nema završenih servisa za ovo vozilo."
                     android:textColor="@color/text_gray"
                     android:textSize="14sp"
-                    android:background="@drawable/bg_stat_card"
-                    android:padding="16dp" />
+                    android:visibility="gone" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvServiceHistory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

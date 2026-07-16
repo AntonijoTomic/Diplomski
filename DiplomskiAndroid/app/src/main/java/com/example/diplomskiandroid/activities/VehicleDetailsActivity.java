@@ -1,15 +1,24 @@
 package com.example.diplomskiandroid.activities;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.diplomskiandroid.R;
+import com.example.diplomskiandroid.adapters.VehicleServiceHistoryAdapter;
 import com.example.diplomskiandroid.api.ApiClient;
 import com.example.diplomskiandroid.api.VehicleApi;
+import com.example.diplomskiandroid.api.WorkOrderApi;
 import com.example.diplomskiandroid.models.Vehicle;
+import com.example.diplomskiandroid.models.WorkOrder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -28,6 +37,15 @@ public class VehicleDetailsActivity extends AppCompatActivity {
     private TextView txtNote;
 
     private VehicleApi vehicleApi;
+    private WorkOrderApi workOrderApi;
+
+    private RecyclerView rvServiceHistory;
+    private TextView txtHistoryEmpty;
+
+    private VehicleServiceHistoryAdapter historyAdapter;
+    private final List<WorkOrder> serviceHistory = new ArrayList<>();
+
+    private int vehicleId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +66,23 @@ public class VehicleDetailsActivity extends AppCompatActivity {
 
         vehicleApi = ApiClient.getClient(this).create(VehicleApi.class);
 
-        int vehicleId = getIntent().getIntExtra("vehicleId", 0);
+        rvServiceHistory = findViewById(R.id.rvServiceHistory);
+        txtHistoryEmpty = findViewById(R.id.txtHistoryEmpty);
+
+        rvServiceHistory.setLayoutManager(
+                new LinearLayoutManager(this)
+        );
+
+        historyAdapter = new VehicleServiceHistoryAdapter(
+                this,
+                serviceHistory
+        );
+
+        rvServiceHistory.setAdapter(historyAdapter);
+        workOrderApi = ApiClient.getClient(this)
+                .create(WorkOrderApi.class);
+
+        vehicleId = getIntent().getIntExtra("vehicleId", 0);
 
         if (vehicleId == 0) {
             Toast.makeText(this, "Vozilo nije pronađeno.", Toast.LENGTH_SHORT).show();
@@ -57,6 +91,55 @@ public class VehicleDetailsActivity extends AppCompatActivity {
         }
 
         loadVehicle(vehicleId);
+        loadServiceHistory();
+    }
+
+    private void loadServiceHistory() {
+
+
+        workOrderApi.getByVehicleId(vehicleId)
+                .enqueue(new Callback<List<WorkOrder>>() {
+
+                    @Override
+                    public void onResponse(Call<List<WorkOrder>> call,
+                                           Response<List<WorkOrder>> response) {
+
+                        if (response.isSuccessful()
+                                && response.body() != null) {
+
+                            serviceHistory.clear();
+
+                            for (WorkOrder workOrder : response.body()) {
+
+                                if ("COMPLETED".equalsIgnoreCase(
+                                        workOrder.getStatus())) {
+
+                                    serviceHistory.add(workOrder);
+                                }
+                            }
+
+                            historyAdapter.notifyDataSetChanged();
+
+                            txtHistoryEmpty.setVisibility(
+                                    serviceHistory.isEmpty()
+                                            ? View.VISIBLE
+                                            : View.GONE
+                            );
+
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<WorkOrder>> call,
+                                          Throwable t) {
+
+                        Toast.makeText(
+                                VehicleDetailsActivity.this,
+                                "Greška kod dohvaćanja servisne povijesti.",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
     }
 
     private void loadVehicle(int vehicleId) {

@@ -37,4 +37,8 @@ public interface WorkOrderApi {
             @Path("id") int id,
             @Body String status
     );
+    @GET("api/WorkOrders/vehicle/{vehicleId}")
+    Call<List<WorkOrder>> getByVehicleId(
+            @Path("vehicleId") int vehicleId
+    );
 }
