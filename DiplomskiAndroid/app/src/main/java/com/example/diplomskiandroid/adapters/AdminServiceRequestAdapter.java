@@ -67,12 +67,6 @@ public class AdminServiceRequestAdapter extends RecyclerView.Adapter<AdminServic
             context.startActivity(intent);
         });
 
-        holder.itemView.setOnLongClickListener(v -> {
-            Toast.makeText(context,
-                    "Obrada zahtjeva dolazi u sljedećem koraku.",
-                    Toast.LENGTH_SHORT).show();
-            return true;
-        });
     }
 
     @Override

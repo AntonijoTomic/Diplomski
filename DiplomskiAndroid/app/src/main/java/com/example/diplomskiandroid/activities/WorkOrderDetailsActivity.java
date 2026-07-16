@@ -10,6 +10,7 @@ import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,7 +19,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.widget.Toast;
+import com.example.diplomskiandroid.AI.AiManager;
 import com.example.diplomskiandroid.R;
 import com.example.diplomskiandroid.StatusHelper;
 import com.example.diplomskiandroid.adapters.WorkOrderPartAdapter;
@@ -27,7 +28,6 @@ import com.example.diplomskiandroid.api.ApiClient;
 import com.example.diplomskiandroid.api.PartApi;
 import com.example.diplomskiandroid.api.ServiceApi;
 import com.example.diplomskiandroid.api.WorkOrderApi;
-
 import com.example.diplomskiandroid.api.WorkOrderPartApi;
 import com.example.diplomskiandroid.api.WorkOrderServiceApi;
 import com.example.diplomskiandroid.models.Part;
@@ -68,6 +68,7 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
     private List<Service> services = new ArrayList<>();
     private List<Part> parts = new ArrayList<>();
     private int workOrderId;
+    private AiManager aiManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,6 +122,8 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
 
         workOrderPartApi = ApiClient.getClient(this)
                 .create(WorkOrderPartApi.class);
+
+        aiManager = new AiManager(this);
 
         btnCompleteWorkOrder =
                 findViewById(R.id.btnCompleteWorkOrder);
@@ -704,6 +707,7 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
 
         MaterialButton btnCancel = view.findViewById(R.id.btnCancel);
         MaterialButton btnAdd = view.findViewById(R.id.btnAdd);
+        MaterialButton btnAiRecommendParts = view.findViewById(R.id.btnAiRecommendParts);
 
         List<String> partNames = new ArrayList<>();
 
@@ -766,6 +770,15 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
 
             dialog.dismiss();
         });
+        btnAiRecommendParts.setOnClickListener(v ->
+                aiManager.openRecommendations(
+                        workOrderId,
+                        () -> {
+                            loadWorkOrderParts();
+                            loadWorkOrder();
+                        }
+                )
+        );
 
         dialog.show();
     }

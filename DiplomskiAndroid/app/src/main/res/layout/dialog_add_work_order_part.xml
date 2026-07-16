@@ -23,11 +23,35 @@
         android:textColor="@color/text_gray"
         android:textSize="14sp" />
 
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="end">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAiRecommendParts"
+            style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AI prijedlog dijelova"
+            android:textAllCaps="false"
+            android:textColor="@color/primary_burgundy"
+            android:textSize="13sp"
+            app:icon="@drawable/outline_network_intelligence_24"
+            app:iconGravity="textStart"
+            app:iconSize="16dp"
+            app:iconTint="@color/primary_burgundy"
+            app:rippleColor="@color/primary_burgundy" />
+
+    </LinearLayout>
+
     <com.google.android.material.textfield.TextInputLayout
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="8dp"
         android:hint="Autodio">
 
         <AutoCompleteTextView

@@ -11,3 +11,4 @@ DiplomskiAndroid/build/
 .vs/
 .idea/
 *.iml
+DiplomskiAPI/appsettings.Development.json

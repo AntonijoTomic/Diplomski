@@ -48,6 +48,19 @@ namespace DiplomskiAPI.Services
                 return null;
             }
 
+            if (part == null || request.Quantity <= 0)
+            {
+                return null;
+            }
+
+            if (part.StockQuantity < request.Quantity)
+            {
+                throw new InvalidOperationException(
+                    $"Nema dovoljno zalihe za dio '{part.Name}'. " +
+                    $"Dostupno: {part.StockQuantity}"
+                );
+            }
+
             var totalPrice = request.Quantity * part.Price;
 
             var workOrderPart = new WorkOrderPartItem
@@ -58,6 +71,7 @@ namespace DiplomskiAPI.Services
                 UnitPrice = part.Price,
                 TotalPrice = totalPrice
             };
+            part.StockQuantity -= request.Quantity;
 
             _context.WorkOrderParts.Add(workOrderPart);
             _context.SaveChanges();
@@ -69,7 +83,9 @@ namespace DiplomskiAPI.Services
 
         public bool Delete(int id)
         {
-            var item = _context.WorkOrderParts.FirstOrDefault(wop => wop.Id == id);
+            var item = _context.WorkOrderParts
+            .Include(x => x.Part)
+            .FirstOrDefault(x => x.Id == id);
 
             if (item == null)
             {
@@ -77,7 +93,7 @@ namespace DiplomskiAPI.Services
             }
 
             var workOrderId = item.WorkOrderId;
-
+            item.Part.StockQuantity += item.Quantity;
             _context.WorkOrderParts.Remove(item);
             _context.SaveChanges();
 

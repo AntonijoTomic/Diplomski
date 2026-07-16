@@ -1,3 +1,4 @@
+using DiplomskiAPI.Configuration;
 using DiplomskiAPI.Data;
 using DiplomskiAPI.Interfaces;
 using DiplomskiAPI.Services;
@@ -37,10 +38,13 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
+builder.Services.Configure<OpenAiOptions>(
+    builder.Configuration.GetSection("OpenAI"));
 builder.Services.AddAuthorization();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(); 
+builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
@@ -49,6 +53,7 @@ builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
 builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IWorkOrderServiceItemService, WorkOrderServiceItemService>();
 builder.Services.AddScoped<IWorkOrderPartItemService, WorkOrderPartItemService>();
+builder.Services.AddScoped<IAiRecommendationService, AiRecommendationService>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
