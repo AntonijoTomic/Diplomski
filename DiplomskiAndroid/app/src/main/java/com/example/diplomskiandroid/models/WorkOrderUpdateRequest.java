@@ -5,8 +5,18 @@ public class WorkOrderUpdateRequest {
     private String diagnosis;
     private String finalReport;
 
-    public WorkOrderUpdateRequest(String diagnosis, String finalReport) {
+    public WorkOrderUpdateRequest(
+            String diagnosis,
+            String finalReport) {
         this.diagnosis = diagnosis;
         this.finalReport = finalReport;
+    }
+
+    public String getDiagnosis() {
+        return diagnosis;
+    }
+
+    public String getFinalReport() {
+        return finalReport;
     }
 }

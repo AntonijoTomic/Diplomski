@@ -10,12 +10,14 @@
 
 
     <ImageView
+        android:id="@+id/success"
         android:layout_width="72dp"
         android:layout_height="72dp"
         android:src="@drawable/baseline_done_24"
         android:layout_marginBottom="16dp"/>
 
     <TextView
+        android:id="@+id/uspjesnododano"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Uspješno dodano!"
@@ -38,6 +40,7 @@
         android:id="@+id/btnOk"
         android:layout_width="match_parent"
         android:layout_height="48dp"
+        android:textColor="@color/white"
         android:text="OK"
         app:backgroundTint="@color/primary_burgundy"
        />

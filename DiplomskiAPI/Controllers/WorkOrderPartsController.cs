@@ -24,14 +24,24 @@ namespace DiplomskiAPI.Controllers
         [HttpPost]
         public IActionResult AddPartToWorkOrder(WorkOrderPartCreateDto request)
         {
-            var result = _workOrderPartItemService.AddPartToWorkOrder(request);
-
-            if (result == null)
+            try
             {
-                return NotFound("Autodio nije pronađen ili količina nije ispravna.");
-            }
+                var result = _workOrderPartItemService.AddPartToWorkOrder(request);
 
-            return Ok(result);
+                if (result == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
         }
 
         [HttpDelete("{id}")]

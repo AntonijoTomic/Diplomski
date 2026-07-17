@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,6 +42,8 @@ import com.example.diplomskiandroid.models.WorkOrderUpdateRequest;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,6 +72,8 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
     private List<Part> parts = new ArrayList<>();
     private int workOrderId;
     private AiManager aiManager;
+    private String pendingDiagnosis = "";
+    private String pendingFinalReport = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -166,43 +171,96 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
 
     private void completeWorkOrder() {
 
+        String diagnosis = etDiagnosis.getText() == null
+                ? ""
+                : etDiagnosis.getText().toString().trim();
+
+        String finalReport = etFinalReport.getText() == null
+                ? ""
+                : etFinalReport.getText().toString().trim();
+
+        WorkOrderUpdateRequest request =
+                new WorkOrderUpdateRequest(
+                        diagnosis,
+                        finalReport
+                );
+
+        workOrderApi.updateWorkOrder(workOrderId, request)
+                .enqueue(new Callback<WorkOrder>() {
+
+                    @Override
+                    public void onResponse(
+                            Call<WorkOrder> call,
+                            Response<WorkOrder> response
+                    ) {
+                        if (response.isSuccessful()) {
+                            markWorkOrderAsCompleted();
+                        } else {
+                            Toast.makeText(
+                                    WorkOrderDetailsActivity.this,
+                                    "Dijagnoza i izvještaj nisu spremljeni.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(
+                            Call<WorkOrder> call,
+                            Throwable t
+                    ) {
+                        Toast.makeText(
+                                WorkOrderDetailsActivity.this,
+                                "Greška povezivanja.",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
+    }
+
+    private void markWorkOrderAsCompleted() {
+
         workOrderApi.updateWorkOrderStatus(
-                workOrderId,
-                "COMPLETED"
-        ).enqueue(new Callback<WorkOrder>() {
+                        workOrderId,
+                        "COMPLETED"
+                )
+                .enqueue(new Callback<WorkOrder>() {
 
-            @Override
-            public void onResponse(Call<WorkOrder> call,
-                                   Response<WorkOrder> response) {
+                    @Override
+                    public void onResponse(
+                            Call<WorkOrder> call,
+                            Response<WorkOrder> response
+                    ) {
+                        if (response.isSuccessful()) {
 
-                if (response.isSuccessful()) {
+                            showMessageDialog(
+                                    "Radni nalog je uspješno kompletiran.",
+                                    () -> {
+                                        loadWorkOrder();
+                                    }
+                            );
 
-                    loadWorkOrder();
+                        } else {
+                            Toast.makeText(
+                                    WorkOrderDetailsActivity.this,
+                                    "Greška kod kompletiranja radnog naloga.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
 
-                    showMessageDialog(
-                            "Radni nalog je uspješno završen.",
-                            null
-                    );
-
-                } else {
-                    Toast.makeText(
-                            WorkOrderDetailsActivity.this,
-                            "Greška kod završavanja radnog naloga.",
-                            Toast.LENGTH_SHORT
-                    ).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<WorkOrder> call, Throwable t) {
-                Toast.makeText(
-                        WorkOrderDetailsActivity.this,
-                        "Greška povezivanja.",
-                        Toast.LENGTH_SHORT
-                ).show();
-            }
-        });
-
+                    @Override
+                    public void onFailure(
+                            Call<WorkOrder> call,
+                            Throwable t
+                    ) {
+                        Toast.makeText(
+                                WorkOrderDetailsActivity.this,
+                                "Greška povezivanja.",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
     }
     private void loadParts() {
 
@@ -586,6 +644,18 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
         dialog.setContentView(R.layout.dialog_success);
         dialog.setCancelable(false);
 
+        ImageView imageView = dialog.findViewById(R.id.success);
+        TextView textView = dialog.findViewById(R.id.uspjesnododano);
+
+
+        if (message.contains("Greška")
+                || message.contains("Nema dovoljno")
+                || message.contains("dostupno")) {
+
+            imageView.setImageResource(R.drawable.outline_cancel_24);
+            textView.setText("Neuspješno!");
+        }
+
         TextView txtMessage = dialog.findViewById(R.id.txtMessage);
         MaterialButton btnOk = dialog.findViewById(R.id.btnOk);
 
@@ -609,7 +679,7 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
     }
 
     private void loadWorkOrder() {
-
+        saveCurrentInput();
         workOrderApi.getWorkOrderDetails(workOrderId)
                 .enqueue(new Callback<WorkOrder>() {
 
@@ -679,8 +749,20 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
             txtOwnerEmail.setText(owner.getEmail());
 
             txtProblemDescription.setText(workOrder.getServiceRequest().getProblemDescription());
-            etDiagnosis.setText(workOrder.getDiagnosis());
-            etFinalReport.setText(workOrder.getFinalReport());
+            if (!pendingDiagnosis.isEmpty()) {
+                etDiagnosis.setText(pendingDiagnosis);
+            } else {
+                etDiagnosis.setText(workOrder.getDiagnosis());
+            }
+
+            if (!pendingFinalReport.isEmpty()) {
+                etFinalReport.setText(pendingFinalReport);
+            } else {
+                etFinalReport.setText(workOrder.getFinalReport());
+            }
+
+        etDiagnosis.setText(pendingDiagnosis);
+        etFinalReport.setText(pendingFinalReport);
             txtEstimatedCost.setText(workOrder.getEstimatedCost() + " €");
             txtFinalCost.setText(workOrder.getFinalCost() + " €");
 
@@ -806,12 +888,21 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
                             });
 
                         } else {
+                            try {
+                                String error = response.errorBody().string();
 
-                            Toast.makeText(
-                                    WorkOrderDetailsActivity.this,
-                                    "Greška kod dodavanja autodijela.",
-                                    Toast.LENGTH_SHORT
-                            ).show();
+                                JSONObject json = new JSONObject(error);
+
+                                showMessageDialog(
+                                        json.getString("message"),
+                                        null
+                                );
+                            } catch (Exception e) {
+                                showMessageDialog(
+                                        "Greška",
+                                        null
+                                );
+                            }
                         }
                     }
 
@@ -830,5 +921,13 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
 
     }
 
+    private void saveCurrentInput() {
+        pendingDiagnosis = etDiagnosis.getText() == null
+                ? ""
+                : etDiagnosis.getText().toString();
 
+        pendingFinalReport = etFinalReport.getText() == null
+                ? ""
+                : etFinalReport.getText().toString();
+    }
 }
