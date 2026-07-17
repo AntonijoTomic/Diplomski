@@ -16,20 +16,24 @@ namespace DiplomskiAPI.Services
 
         public List<Vehicle> GetAll()
         {
-            return _context.Vehicles.ToList();
+            return _context.Vehicles
+                .Where(v => v.IsActive)
+                .OrderByDescending(v => v.CreatedAt)
+                .ToList();
         }
 
         public List<Vehicle> GetByUserId(int userId)
         {
             return _context.Vehicles
-                .Where(v => v.UserId == userId)
+                .Where(v => v.UserId == userId && v.IsActive)
                 .OrderByDescending(v => v.CreatedAt)
                 .ToList();
         }
 
         public Vehicle? GetById(int id)
         {
-            return _context.Vehicles.FirstOrDefault(v => v.Id == id);
+            return _context.Vehicles
+                .FirstOrDefault(v => v.Id == id && v.IsActive);
         }
 
         public Vehicle Create(VehicleCreateDto request)
@@ -46,7 +50,8 @@ namespace DiplomskiAPI.Services
                 Mileage = request.Mileage,
                 RegistrationDate = request.RegistrationDate,
                 Note = request.Note,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true
             };
 
             _context.Vehicles.Add(vehicle);
@@ -57,12 +62,14 @@ namespace DiplomskiAPI.Services
 
         public Vehicle? Update(int id, VehicleCreateDto request)
         {
-            var vehicle = _context.Vehicles.FirstOrDefault(v => v.Id == id);
+            var vehicle = _context.Vehicles
+                .FirstOrDefault(v => v.Id == id && v.IsActive);
 
             if (vehicle == null)
             {
                 return null;
             }
+
             vehicle.UserId = request.UserId;
             vehicle.Brand = request.Brand;
             vehicle.Model = request.Model;
@@ -81,14 +88,15 @@ namespace DiplomskiAPI.Services
 
         public bool Delete(int id)
         {
-            var vehicle = _context.Vehicles.FirstOrDefault(v => v.Id == id);
+            var vehicle = _context.Vehicles
+                .FirstOrDefault(v => v.Id == id && v.IsActive);
 
             if (vehicle == null)
             {
                 return false;
             }
 
-            _context.Vehicles.Remove(vehicle);
+            vehicle.IsActive = false;
             _context.SaveChanges();
 
             return true;

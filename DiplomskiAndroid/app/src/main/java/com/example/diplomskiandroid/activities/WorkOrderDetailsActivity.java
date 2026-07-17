@@ -761,8 +761,6 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
                 etFinalReport.setText(workOrder.getFinalReport());
             }
 
-        etDiagnosis.setText(pendingDiagnosis);
-        etFinalReport.setText(pendingFinalReport);
             txtEstimatedCost.setText(workOrder.getEstimatedCost() + " €");
             txtFinalCost.setText(workOrder.getFinalCost() + " €");
 

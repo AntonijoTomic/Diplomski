@@ -45,6 +45,8 @@ namespace DiplomskiAPI.Models
 
         [ForeignKey(nameof(UserId))]
         public User User { get; set; } = null!;
+        [Column("is_active")]
+        public bool IsActive { get; set; } = true;
 
         public ICollection<ServiceRequest> ServiceRequests { get; set; } = new List<ServiceRequest>();
     }
