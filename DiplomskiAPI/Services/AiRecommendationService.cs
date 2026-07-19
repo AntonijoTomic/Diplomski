@@ -24,9 +24,9 @@ namespace DiplomskiAPI.Services
             _options = options.Value;
         }
 
-        public async Task<AiPartRecommendationResponseDto?> RecommendPartsAsync(
-                      int workOrderId)
+        public async Task<AiRecommendationResponseDto?> RecommendAsync(int workOrderId)
         {
+            var response = new AiRecommendationResponseDto();
             var workOrder = await _context.WorkOrders
                 .Include(w => w.ServiceRequest)
                     .ThenInclude(sr => sr.Vehicle)
@@ -47,40 +47,90 @@ namespace DiplomskiAPI.Services
                 .OrderBy(p => p.Id)
                 .ToListAsync();
 
-            var prompt = BuildPrompt(workOrder, availableParts);
+
+            var existingServiceIds = _context.WorkOrderServices
+                .Where(x => x.WorkOrderId == workOrderId)
+                .Select(x => x.ServiceId)
+                .ToList();
+
+            var availableServices = await _context.Services
+                .Where(s => !existingServiceIds.Contains(s.Id))
+                .OrderBy(s => s.Id)
+                .ToListAsync();
+
+
+            var prompt = BuildPrompt(workOrder, availableParts,availableServices);
 
             var aiResponse = await AskOpenAiAsync(prompt);
 
         
             System.Diagnostics.Debug.WriteLine(aiResponse);
 
-            
+
             var result = ParseResponse(aiResponse);
 
-            result.Parts = result.Parts
+            response.Parts = result.Parts
                 .Where(p => availableParts.Any(ap => ap.Id == p.Id))
                 .ToList();
 
-            return result;
+            foreach (var part in response.Parts)
+            {
+                part.Name = availableParts
+                    .First(p => p.Id == part.Id)
+                    .Name;
+            }
+
+            response.Services = result.Services
+            .Where(s => availableServices.Any(a => a.Id == s.Id))
+            .ToList();
+
+            foreach (var service in response.Services)
+            {
+                var serviceFromDatabase = availableServices
+                  .First(s => s.Id == service.Id);
+
+                        service.Name = serviceFromDatabase.Name;
+                        service.HourlyRate = (double)serviceFromDatabase.Price;
+                    }
+
+            return response;
         }
 
-        private string BuildPrompt(WorkOrder workOrder, List<Part> availableParts)
+        private string BuildPrompt(WorkOrder workOrder, List<Part> availableParts, List<Service> availableServices)
         {
             var prompt = new StringBuilder();
             prompt.AppendLine(
-                         "Ti si iskusni automehaničar."
+                "Ti si iskusni automehaničar."
              );
 
             prompt.AppendLine(
-                "Na temelju podataka o vozilu i dijagnoze odaberi autodijelove koje treba naručiti."
+                "Na temelju podataka o vozilu i dijagnoze odaberi autodijelove koje treba naručiti i usluge koje treba obaviti."
             );
 
             prompt.AppendLine(
-                "Koristi ISKLJUČIVO dijelove iz ponuđenog popisa."
+                "Koristi ISKLJUČIVO dijelove i usluge iz ponuđenog popisa."
             );
 
             prompt.AppendLine(
-                "Nemoj izmišljati nove dijelove."
+                "Nemoj izmišljati nove dijelove i usluge."
+            );
+            prompt.AppendLine(
+                "Ako opis problema ili dijagnoza upućuju na zamjenu dijela, obavezno odaberi odgovarajući dio iz ponuđenog popisa."
+            );
+
+            prompt.AppendLine(
+                "Nemoj vratiti praznu listu dijelova samo zato što dijagnoza ne navodi točan naziv dijela; zaključi koji su dijelovi uobičajeno potrebni za preporučeni zahvat."
+            );
+
+            prompt.AppendLine(
+                "Za svaku odabranu uslugu provjeri zahtijeva li ona zamjenu ili ugradnju nekog od dostupnih dijelova."
+            );
+            prompt.AppendLine(
+                 "Kod tekućina (motorno ulje, antifriz, ulje mjenjača, kočiona tekućina i slično) količina predstavlja broj pakiranja, a ne broj litara."
+             );
+
+            prompt.AppendLine(
+                "Ako je dio pakiranje od 5 L i vozilu treba oko 5 L ulja, predloži količinu 1, a ne 5."
             );
 
             prompt.AppendLine(
@@ -121,6 +171,15 @@ namespace DiplomskiAPI.Services
 
             prompt.AppendLine();
 
+            prompt.AppendLine("Dostupne usluge:");
+
+            foreach (var service in availableServices)
+            {
+                prompt.AppendLine($"{service.Id} - {service.Name}");
+            }
+
+            prompt.AppendLine();
+
             prompt.AppendLine("""
                     Vrati odgovor u ovom obliku:
 
@@ -128,11 +187,28 @@ namespace DiplomskiAPI.Services
                       "parts": [
                         {
                           "id": 1,
-                          "name": "Naziv dijela"
+                          "quantity": 1
+                        }
+                      ],
+                      "Services": [
+                        {
+                           "id": 1,
+                          "hours": 1
                         }
                       ]
                     }
+
+                       **Odaberi sve dijelove koji su realno potrebni za popravak.
+                     Odaberi sve usluge koje su realno potrebne za popravak.
+                     Koristi isključivo ID-eve iz ponuđenih popisa.
+                     Quantity mora biti cijeli broj veći od 0.
+                     Hours mora biti broj veći od 0.
+                     Praznu listu dijelova vrati samo ako za popravak zaista nije potreban nijedan dostupni dio.
+                     Praznu listu usluga vrati samo ako zaista nije potrebna nijedna dostupna usluga.
+                     Nemoj dodavati nikakav tekst izvan JSON-a.
                     """);
+
+                    
 
             return prompt.ToString();
         }
@@ -218,7 +294,7 @@ namespace DiplomskiAPI.Services
         }
 
 
-        private AiPartRecommendationResponseDto ParseResponse(string aiResponse)
+        private AiRecommendationResponseDto ParseResponse(string aiResponse)
         {
             aiResponse = aiResponse.Trim();
 
@@ -230,14 +306,14 @@ namespace DiplomskiAPI.Services
                     .Trim();
             }
 
-            var response = JsonSerializer.Deserialize<AiPartRecommendationResponseDto>(
+            var response = JsonSerializer.Deserialize<AiRecommendationResponseDto>(
                 aiResponse,
                 new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
 
-            return response ?? new AiPartRecommendationResponseDto();
+            return response ?? new AiRecommendationResponseDto();
         }
     }
 }

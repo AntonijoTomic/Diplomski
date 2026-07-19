@@ -17,11 +17,11 @@ namespace DiplomskiAPI.Controllers
             _aiRecommendationService = aiRecommendationService;
         }
 
-        [HttpPost("work-orders/{workOrderId}/recommend-parts")]
-        public async Task<IActionResult> RecommendParts(int workOrderId)
+        [HttpPost("work-orders/{workOrderId}/recommend")]
+        public async Task<IActionResult> Recommend(int workOrderId)
         {
             var result = await _aiRecommendationService
-                .RecommendPartsAsync(workOrderId);
+                .RecommendAsync(workOrderId);
 
             if (result == null)
             {

@@ -13,33 +13,35 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.diplomskiandroid.R;
-import com.example.diplomskiandroid.models.AiRecommendedPart;
+import com.example.diplomskiandroid.models.AiRecommendedService;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class AiRecommendationDialog {
+public class AiServiceRecommendationDialog {
 
-    public interface OnPartsSelectedListener {
-        void onPartsSelected(List<AiRecommendedPart> selectedParts);
+    public interface OnServicesSelectedListener {
+        void onServicesSelected(
+                List<AiRecommendedService> selectedServices
+        );
     }
 
     private final Context context;
 
-    public AiRecommendationDialog(Context context) {
+    public AiServiceRecommendationDialog(Context context) {
         this.context = context;
     }
 
     public void show(
-            List<AiRecommendedPart> recommendedParts,
-            OnPartsSelectedListener listener
+            List<AiRecommendedService> recommendedServices,
+            OnServicesSelectedListener listener
     ) {
         Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         View view = LayoutInflater.from(context)
-                .inflate(R.layout.dialog_ai_recommendations, null);
+                .inflate(R.layout.dialog_ai_services, null);
 
         dialog.setContentView(view);
         dialog.setCancelable(true);
@@ -53,30 +55,43 @@ public class AiRecommendationDialog {
         MaterialButton btnCancelAi =
                 view.findViewById(R.id.btnCancelAi);
 
-        MaterialButton btnAddAiParts =
-                view.findViewById(R.id.btnAddAiParts);
+        MaterialButton btnAddAiServices =
+                view.findViewById(R.id.btnAddAiServices);
 
         List<CheckBox> checkBoxes = new ArrayList<>();
 
-        if (recommendedParts == null || recommendedParts.isEmpty()) {
+        if (recommendedServices == null
+                || recommendedServices.isEmpty()) {
+
             txtNoRecommendations.setVisibility(View.VISIBLE);
             layoutRecommendations.setVisibility(View.GONE);
-            btnAddAiParts.setVisibility(View.GONE);
+            btnAddAiServices.setVisibility(View.GONE);
+
         } else {
+
             txtNoRecommendations.setVisibility(View.GONE);
             layoutRecommendations.setVisibility(View.VISIBLE);
-            btnAddAiParts.setVisibility(View.VISIBLE);
+            btnAddAiServices.setVisibility(View.VISIBLE);
 
-            for (AiRecommendedPart part : recommendedParts) {
+            for (AiRecommendedService service : recommendedServices) {
+
                 CheckBox checkBox = new CheckBox(context);
 
-                checkBox.setText(part.getName());
-                checkBox.setTextSize(15);
-                checkBox.setTextColor(
-                        context.getResources().getColor(R.color.text_dark)
+                checkBox.setText(
+                        service.getName()
+                                + "\nSati: "
+                                + service.getHours()
                 );
+
+                checkBox.setTextSize(15);
+
+                checkBox.setTextColor(
+                        context.getResources()
+                                .getColor(R.color.text_dark)
+                );
+
                 checkBox.setChecked(true);
-                checkBox.setTag(part);
+                checkBox.setTag(service);
 
                 LinearLayout.LayoutParams params =
                         new LinearLayout.LayoutParams(
@@ -94,31 +109,35 @@ public class AiRecommendationDialog {
 
         btnCancelAi.setOnClickListener(v -> dialog.dismiss());
 
-        btnAddAiParts.setOnClickListener(v -> {
+        btnAddAiServices.setOnClickListener(v -> {
 
-            List<AiRecommendedPart> selectedParts = new ArrayList<>();
+            List<AiRecommendedService> selectedServices =
+                    new ArrayList<>();
 
             for (CheckBox checkBox : checkBoxes) {
+
                 if (checkBox.isChecked()) {
-                    selectedParts.add(
-                            (AiRecommendedPart) checkBox.getTag()
+                    selectedServices.add(
+                            (AiRecommendedService) checkBox.getTag()
                     );
                 }
             }
 
-            if (selectedParts.isEmpty()) {
+            if (selectedServices.isEmpty()) {
+
                 Toast.makeText(
                         context,
-                        "Odaberite barem jedan dio.",
+                        "Odaberite barem jednu uslugu.",
                         Toast.LENGTH_SHORT
                 ).show();
+
                 return;
             }
 
             dialog.dismiss();
 
             if (listener != null) {
-                listener.onPartsSelected(selectedParts);
+                listener.onServicesSelected(selectedServices);
             }
         });
 
@@ -132,8 +151,11 @@ public class AiRecommendationDialog {
 
         if (dialog.getWindow() != null) {
             dialog.getWindow().setLayout(
-                    (int) (context.getResources()
-                            .getDisplayMetrics().widthPixels * 0.92),
+                    (int) (
+                            context.getResources()
+                                    .getDisplayMetrics()
+                                    .widthPixels * 0.92
+                    ),
                     LinearLayout.LayoutParams.WRAP_CONTENT
             );
         }

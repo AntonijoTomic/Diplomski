@@ -482,6 +482,7 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
 
         MaterialButton btnAdd =
                 view.findViewById(R.id.btnAdd);
+        MaterialButton btnAiRecommendServices = view.findViewById(R.id.btnAiRecommendServices);
 
         List<String> serviceNames = new ArrayList<>();
 
@@ -541,7 +542,15 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
             dialog.dismiss();
 
         });
-
+        btnAiRecommendServices.setOnClickListener(v ->
+                aiManager.openServiceRecommendations(
+                        workOrderId,
+                        () -> {
+                            loadWorkOrderServices();
+                            loadWorkOrder();
+                        }
+                )
+        );
         dialog.show();
     }
 
@@ -789,6 +798,7 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
         MaterialButton btnAdd = view.findViewById(R.id.btnAdd);
         MaterialButton btnAiRecommendParts = view.findViewById(R.id.btnAiRecommendParts);
 
+
         List<String> partNames = new ArrayList<>();
 
         for (Part part : parts) {
@@ -851,7 +861,7 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
             dialog.dismiss();
         });
         btnAiRecommendParts.setOnClickListener(v ->
-                aiManager.openRecommendations(
+                aiManager.openPartRecommendations(
                         workOrderId,
                         () -> {
                             loadWorkOrderParts();

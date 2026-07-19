@@ -4,6 +4,6 @@ namespace DiplomskiAPI.Interfaces
 {
     public interface IAiRecommendationService
     {
-        Task<AiPartRecommendationResponseDto?> RecommendPartsAsync(int workOrderId);
+        Task<AiRecommendationResponseDto?> RecommendAsync(int workOrderId);
     }
 }

@@ -6,11 +6,14 @@ import android.widget.Toast;
 import com.example.diplomskiandroid.api.AiApi;
 import com.example.diplomskiandroid.api.ApiClient;
 import com.example.diplomskiandroid.api.WorkOrderPartApi;
+import com.example.diplomskiandroid.api.WorkOrderServiceApi;
 import com.example.diplomskiandroid.models.AiRecommendationResponse;
 import com.example.diplomskiandroid.models.AiRecommendedPart;
+import com.example.diplomskiandroid.models.AiRecommendedService;
 import com.example.diplomskiandroid.models.WorkOrderPartCreateRequest;
 import com.example.diplomskiandroid.models.WorkOrderPartItem;
-
+import com.example.diplomskiandroid.models.WorkOrderServiceCreateRequest;
+import com.example.diplomskiandroid.models.WorkOrderServiceItem;
 
 import java.util.List;
 
@@ -23,22 +26,25 @@ public class AiManager {
     private final Context context;
     private final AiApi aiApi;
     private final WorkOrderPartApi workOrderPartApi;
-
+    private final WorkOrderServiceApi workOrderServiceApi;
     public AiManager(Context context) {
         this.context = context;
 
         aiApi = ApiClient.getClient(context)
                 .create(AiApi.class);
 
+        workOrderServiceApi = ApiClient.getClient(context)
+                .create(WorkOrderServiceApi.class);
+
         workOrderPartApi = ApiClient.getClient(context)
                 .create(WorkOrderPartApi.class);
     }
 
-    public void openRecommendations(
+    public void openPartRecommendations(
             int workOrderId,
             Runnable onFinished
     ) {
-        aiApi.recommendParts(workOrderId)
+        aiApi.recommend(workOrderId)
                 .enqueue(new Callback<AiRecommendationResponse>() {
 
                     @Override
@@ -58,7 +64,7 @@ public class AiManager {
                             return;
                         }
 
-                        new AiRecommendationDialog(context).show(
+                        new AiPartRecommendationDialog(context).show(
                                 response.body().getParts(),
                                 selectedParts ->
                                         addSelectedParts(
@@ -83,6 +89,56 @@ public class AiManager {
                 });
     }
 
+    public void openServiceRecommendations(
+            int workOrderId,
+            Runnable onFinished
+    ) {
+        aiApi.recommend(workOrderId)
+                .enqueue(new Callback<AiRecommendationResponse>() {
+
+                    @Override
+                    public void onResponse(
+                            Call<AiRecommendationResponse> call,
+                            Response<AiRecommendationResponse> response
+                    ) {
+
+                        if (!response.isSuccessful()
+                                || response.body() == null) {
+
+                            Toast.makeText(
+                                    context,
+                                    "Greška kod dohvaćanja AI preporuke.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+
+                            return;
+                        }
+
+                        new AiServiceRecommendationDialog(context).show(
+                                response.body().getServices(),
+                                selectedServices ->
+                                        addSelectedServices(
+                                                workOrderId,
+                                                selectedServices,
+                                                onFinished
+                                        )
+                        );
+                    }
+
+                    @Override
+                    public void onFailure(
+                            Call<AiRecommendationResponse> call,
+                            Throwable t
+                    ) {
+
+                        Toast.makeText(
+                                context,
+                                "Greška povezivanja: " + t.getMessage(),
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                });
+    }
     private void addSelectedParts(
             int workOrderId,
             List<AiRecommendedPart> selectedParts,
@@ -102,7 +158,7 @@ public class AiManager {
                     new WorkOrderPartCreateRequest(
                             workOrderId,
                             part.getId(),
-                            1
+                            part.getQuantity()
                     );
 
             workOrderPartApi.addPartToWorkOrder(request)
@@ -120,10 +176,7 @@ public class AiManager {
                             completed[0]++;
 
                             if (completed[0] == total) {
-                                finish(
-                                        failed[0],
-                                        onFinished
-                                );
+                                finish(failed[0], onFinished);
                             }
                         }
 
@@ -136,10 +189,67 @@ public class AiManager {
                             completed[0]++;
 
                             if (completed[0] == total) {
-                                finish(
-                                        failed[0],
-                                        onFinished
-                                );
+                                finish(failed[0], onFinished);
+                            }
+                        }
+                    });
+        }
+    }
+    private void addSelectedServices(
+            int workOrderId,
+            List<AiRecommendedService> selectedServices,
+            Runnable onFinished
+    ) {
+
+        if (selectedServices == null || selectedServices.isEmpty()) {
+            return;
+        }
+
+        int total = selectedServices.size();
+        int[] completed = {0};
+        int[] failed = {0};
+
+        for (AiRecommendedService service : selectedServices) {
+
+            WorkOrderServiceCreateRequest request =
+                    new WorkOrderServiceCreateRequest(
+                            workOrderId,
+                            service.getId(),
+                            service.getHours(),
+                            service.getHourlyRate()
+                    );
+
+            workOrderServiceApi.addServiceToWorkOrder(request)
+                    .enqueue(new Callback<WorkOrderServiceItem>() {
+
+                        @Override
+                        public void onResponse(
+                                Call<WorkOrderServiceItem> call,
+                                Response<WorkOrderServiceItem> response
+                        ) {
+
+                            if (!response.isSuccessful()) {
+                                failed[0]++;
+                            }
+
+                            completed[0]++;
+
+                            if (completed[0] == total) {
+                                finish(failed[0], onFinished);
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(
+                                Call<WorkOrderServiceItem> call,
+                                Throwable t
+                        ) {
+
+                            failed[0]++;
+                            completed[0]++;
+
+                            if (completed[0] == total) {
+                                finish(failed[0], onFinished);
                             }
                         }
                     });
@@ -154,13 +264,11 @@ public class AiManager {
             onFinished.run();
         }
 
-        String message = failed == 0
-                ? "AI predloženi dijelovi uspješno su dodani."
-                : "Neki dijelovi nisu mogli biti dodani.";
-
         Toast.makeText(
                 context,
-                message,
+                failed == 0
+                        ? "Predloženi dijelovi uspješno su dodani."
+                        : "Neki dijelovi nisu mogli biti dodani.",
                 Toast.LENGTH_LONG
         ).show();
     }

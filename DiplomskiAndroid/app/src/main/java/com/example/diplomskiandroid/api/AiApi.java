@@ -8,8 +8,8 @@ import retrofit2.http.Path;
 
 public interface AiApi {
 
-    @POST("api/AiRecommendations/work-orders/{workOrderId}/recommend-parts")
-    Call<AiRecommendationResponse> recommendParts(
+    @POST("api/AiRecommendations/work-orders/{workOrderId}/recommend")
+    Call<AiRecommendationResponse> recommend(
             @Path("workOrderId") int workOrderId
     );
 }

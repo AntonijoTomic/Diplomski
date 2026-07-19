@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -11,26 +10,18 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="AI preporuka dijelova"
-        android:textColor="@color/primary_burgundy"
+        android:text="AI preporučeni dijelovi"
+        android:textStyle="bold"
         android:textSize="22sp"
-        android:textStyle="bold" />
+        android:textColor="@color/primary_burgundy"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
-        android:text="Odaberite dijelove koje želite dodati na radni nalog."
+        android:text="Odaberite autodijelove koje želite dodati na radni nalog."
         android:textColor="@color/text_gray"
-        android:textSize="14sp" />
-
-    <ProgressBar
-        android:id="@+id/progressAi"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="24dp"
-        android:visibility="gone" />
+        android:textSize="14sp"/>
 
     <TextView
         android:id="@+id/txtNoRecommendations"
@@ -38,44 +29,44 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:gravity="center"
-        android:text="AI nije pronašao odgovarajuće dijelove."
+        android:text="AI nije pronašao preporučene dijelove."
         android:textColor="@color/text_gray"
-        android:textSize="14sp"
-        android:visibility="gone" />
+        android:visibility="gone"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginTop="16dp">
+
+        <LinearLayout
+            android:id="@+id/layoutRecommendations"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+
+    </ScrollView>
 
     <LinearLayout
-        android:id="@+id/layoutRecommendations"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="18dp"
-        android:orientation="vertical" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="20dp"
         android:gravity="end"
         android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancelAi"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Odustani"
-            android:textAllCaps="false"
-            android:textColor="@color/primary_burgundy"
-            app:strokeColor="@color/primary_burgundy" />
+            android:text="Odustani"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAddAiParts"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:text="Dodaj označene"
-            android:textAllCaps="false"
-            android:textColor="@color/white"
-            app:backgroundTint="@color/primary_burgundy" />
+            android:background="@color/primary_burgundy"
+            android:text="Dodaj"/>
 
     </LinearLayout>
 

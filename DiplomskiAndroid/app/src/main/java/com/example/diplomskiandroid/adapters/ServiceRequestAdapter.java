@@ -97,6 +97,7 @@ public class ServiceRequestAdapter extends RecyclerView.Adapter<ServiceRequestAd
                     "Zahtjev više nije moguće uređivati ili obrisati.",
                     Toast.LENGTH_SHORT
             ).show();
+
             return;
         }
 
