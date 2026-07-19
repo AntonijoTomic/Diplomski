@@ -542,15 +542,53 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
             dialog.dismiss();
 
         });
-        btnAiRecommendServices.setOnClickListener(v ->
-                aiManager.openServiceRecommendations(
-                        workOrderId,
-                        () -> {
-                            loadWorkOrderServices();
-                            loadWorkOrder();
+        btnAiRecommendServices.setOnClickListener(v -> {
+
+            WorkOrderUpdateRequest request =
+                    new WorkOrderUpdateRequest(
+                            etDiagnosis.getText().toString().trim(),
+                            etFinalReport.getText().toString().trim()
+                    );
+
+            workOrderApi.updateWorkOrder(workOrderId, request)
+                    .enqueue(new Callback<WorkOrder>() {
+
+                        @Override
+                        public void onResponse(Call<WorkOrder> call,
+                                               Response<WorkOrder> response) {
+
+                            if (response.isSuccessful()) {
+
+                                aiManager.openServiceRecommendations(
+                                        workOrderId,
+                                        () -> {
+                                            loadWorkOrderServices();
+                                            loadWorkOrder();
+                                        }
+                                );
+
+                            } else {
+
+                                Toast.makeText(
+                                        WorkOrderDetailsActivity.this,
+                                        "Greška kod spremanja.",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            }
                         }
-                )
-        );
+
+                        @Override
+                        public void onFailure(Call<WorkOrder> call,
+                                              Throwable t) {
+
+                            Toast.makeText(
+                                    WorkOrderDetailsActivity.this,
+                                    "Greška povezivanja.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    });
+        });
         dialog.show();
     }
 
@@ -860,15 +898,52 @@ public class WorkOrderDetailsActivity extends AppCompatActivity {
 
             dialog.dismiss();
         });
-        btnAiRecommendParts.setOnClickListener(v ->
-                aiManager.openPartRecommendations(
-                        workOrderId,
-                        () -> {
-                            loadWorkOrderParts();
-                            loadWorkOrder();
+        btnAiRecommendParts.setOnClickListener(v -> {
+
+            WorkOrderUpdateRequest request =
+                    new WorkOrderUpdateRequest(
+                            etDiagnosis.getText().toString().trim(),
+                            etFinalReport.getText().toString().trim()
+                    );
+
+            workOrderApi.updateWorkOrder(workOrderId, request)
+                    .enqueue(new Callback<WorkOrder>() {
+
+                        @Override
+                        public void onResponse(Call<WorkOrder> call,
+                                               Response<WorkOrder> response) {
+
+                            if (response.isSuccessful()) {
+
+                                aiManager.openPartRecommendations(
+                                        workOrderId,
+                                        () -> {
+                                            loadWorkOrderParts();
+                                            loadWorkOrder();
+                                        }
+                                );
+
+                            } else {
+                                Toast.makeText(
+                                        WorkOrderDetailsActivity.this,
+                                        "Greška kod spremanja.",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            }
                         }
-                )
-        );
+
+                        @Override
+                        public void onFailure(Call<WorkOrder> call,
+                                              Throwable t) {
+
+                            Toast.makeText(
+                                    WorkOrderDetailsActivity.this,
+                                    "Greška povezivanja.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    });
+        });
 
         dialog.show();
     }

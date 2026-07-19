@@ -267,7 +267,7 @@ public class AiManager {
         Toast.makeText(
                 context,
                 failed == 0
-                        ? "Predloženi dijelovi uspješno su dodani."
+                        ? "Uspješno dodano."
                         : "Neki dijelovi nisu mogli biti dodani.",
                 Toast.LENGTH_LONG
         ).show();

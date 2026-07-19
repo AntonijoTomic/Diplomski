@@ -19,5 +19,7 @@ namespace DiplomskiAPI.Interfaces
         List<WorkOrder> GetByUserId(int userId);
         WorkOrderDto? GetDetailsById(int id);
         WorkOrderDto? Update(int id, WorkOrderUpdateDto request);
+
+        WorkOrderDto? GetByServiceRequestId(int requestId);
     }
 }

@@ -41,4 +41,9 @@ public interface WorkOrderApi {
     Call<List<WorkOrder>> getByVehicleId(
             @Path("vehicleId") int vehicleId
     );
+
+    @GET("api/WorkOrders/service-request/{requestId}")
+    Call<WorkOrder> getByServiceRequestId(
+            @Path("requestId") int requestId
+    );
 }

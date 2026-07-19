@@ -236,5 +236,18 @@ namespace DiplomskiAPI.Services
                 }
             };
         }
+
+        public WorkOrderDto? GetByServiceRequestId(int requestId)
+        {
+            var workOrder = _context.WorkOrders
+                .FirstOrDefault(w => w.ServiceRequestId == requestId);
+
+            if (workOrder == null)
+            {
+                return null;
+            }
+
+            return MapToDto(workOrder);
+        }
     }
 }

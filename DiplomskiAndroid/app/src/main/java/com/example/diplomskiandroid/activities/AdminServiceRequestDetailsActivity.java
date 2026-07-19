@@ -36,45 +36,24 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class AdminServiceRequestDetailsActivity extends AppCompatActivity {
-    private LinearLayout layoutActions;
-    private LinearLayout layoutWorkOrder;
+    private LinearLayout layoutActions, layoutWorkOrder;
 
     private MaterialCardView cardStatusInfo;
-    private TextView txtStatusInfo;
-
-    private MaterialButton btnCreateWorkOrder;
-    private TextView txtBack;
-
-    private TextView txtVehicleName;
-    private TextView txtLicensePlate;
-    private TextView txtStatus;
-
-    private TextView txtOwnerName;
-    private TextView txtOwnerEmail;
-    private TextView txtOwnerPhone;
-
-    private TextView txtYear;
-    private TextView txtFuelType;
-    private TextView txtMileage;
-    private TextView txtRegistrationDate;
-    private TextView txtVin;
-
-    private TextView txtProblemDescription;
-    private TextView txtNote;
-
-    private TextView txtServiceType;
-    private TextView txtUrgency;
-    private TextView txtDesiredDate;
-    private TextView txtCreatedAt;
-
     private CardView cardNote;
 
-    private MaterialButton btnAccept;
-    private MaterialButton btnReject;
+    private TextView txtStatusInfo, txtBack, txtVehicleName, txtLicensePlate, txtStatus,
+            txtOwnerName, txtOwnerEmail, txtOwnerPhone,
+            txtYear, txtFuelType, txtMileage, txtRegistrationDate, txtVin,
+            txtProblemDescription, txtNote,
+            txtServiceType, txtUrgency, txtDesiredDate, txtCreatedAt;
+
+    private MaterialButton btnCreateWorkOrder, btnAccept, btnReject;
 
     private ServiceRequestApi serviceRequestApi;
 
     private int requestId;
+    private WorkOrderApi workOrderApi;
+    private Integer existingWorkOrderId = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,10 +100,29 @@ public class AdminServiceRequestDetailsActivity extends AppCompatActivity {
         serviceRequestApi =
                 ApiClient.getClient(this).create(ServiceRequestApi.class);
 
+        workOrderApi =
+                ApiClient.getClient(this).create(WorkOrderApi.class);
+
         txtBack.setOnClickListener(v -> finish());
         btnAccept.setOnClickListener(v -> updateStatus("IN_PROGRESS"));
         btnReject.setOnClickListener(v -> updateStatus("REJECTED"));
-        btnCreateWorkOrder.setOnClickListener(v -> createWorkOrder());
+        btnCreateWorkOrder.setOnClickListener(v -> {
+
+            if (existingWorkOrderId != null) {
+
+                Intent intent = new Intent(
+                        AdminServiceRequestDetailsActivity.this,
+                        WorkOrderDetailsActivity.class
+                );
+
+                intent.putExtra("workOrderId", existingWorkOrderId);
+                startActivity(intent);
+
+            } else {
+
+                createWorkOrder();
+            }
+        });
 
         loadRequest();
     }
@@ -183,6 +181,7 @@ public class AdminServiceRequestDetailsActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
 
                     showRequest(response.body());
+                    checkExistingWorkOrder();
 
                 } else {
 
@@ -196,6 +195,39 @@ public class AdminServiceRequestDetailsActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void checkExistingWorkOrder() {
+
+        workOrderApi.getByServiceRequestId(requestId)
+                .enqueue(new Callback<WorkOrder>() {
+
+                    @Override
+                    public void onResponse(
+                            Call<WorkOrder> call,
+                            Response<WorkOrder> response
+                    ) {
+
+                        if (response.isSuccessful() && response.body() != null) {
+
+                            existingWorkOrderId = response.body().getId();
+                            btnCreateWorkOrder.setText("Prikaži radni nalog");
+
+                        } else {
+
+                            existingWorkOrderId = null;
+                            btnCreateWorkOrder.setText("Izradi radni nalog");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<WorkOrder> call, Throwable t) {
+
+                        existingWorkOrderId = null;
+                        btnCreateWorkOrder.setText("Izradi radni nalog");
+                    }
+                });
+    }
+
     private void showRequest(ServiceRequest request) {
 
         Vehicle vehicle = request.getVehicle();

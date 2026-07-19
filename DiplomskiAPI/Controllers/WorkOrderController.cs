@@ -2,6 +2,7 @@
 using DiplomskiAPI.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DiplomskiAPI.Controllers
 {
@@ -101,6 +102,18 @@ namespace DiplomskiAPI.Controllers
 
             if (workOrder == null)
                 return NotFound();
+
+            return Ok(workOrder);
+        }
+        [HttpGet("service-request/{requestId}")]
+        public IActionResult GetByServiceRequestId(int requestId)
+        {
+            var workOrder = _workOrderService.GetByServiceRequestId(requestId);
+
+            if (workOrder == null)
+            {
+                return NotFound();
+            }
 
             return Ok(workOrder);
         }
