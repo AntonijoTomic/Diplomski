@@ -1,5 +1,6 @@
 package com.example.diplomskiandroid.api;
 
+import com.example.diplomskiandroid.models.ChangePasswordRequest;
 import com.example.diplomskiandroid.models.UpdateProfileRequest;
 import com.example.diplomskiandroid.models.UserProfile;
 
@@ -17,4 +18,9 @@ public interface UserApi {
     Call<Void> updateProfile(
             @Body UpdateProfileRequest request
     );
+    @PUT("api/Users/change-password")
+    Call<Void> changePassword(@Body ChangePasswordRequest request);
+
+    @PUT("api/Users/deactivate")
+    Call<Void> deactivateAccount();
 }

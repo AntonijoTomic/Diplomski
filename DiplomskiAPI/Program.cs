@@ -54,6 +54,7 @@ builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IWorkOrderServiceItemService, WorkOrderServiceItemService>();
 builder.Services.AddScoped<IWorkOrderPartItemService, WorkOrderPartItemService>();
 builder.Services.AddScoped<IAiRecommendationService, AiRecommendationService>();
+builder.Services.AddScoped<IUser, UserService>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -66,7 +67,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
-
+var a = (BCrypt.Net.BCrypt.HashPassword("123"));
 app.MapControllers();
 
 app.Run("http://0.0.0.0:5136"); //bez adrese se ne mogu spojiti preko uredaja

@@ -4,9 +4,35 @@
         parent="Theme.Material3.DayNight.NoActionBar">
 
         <item name="colorPrimary">@color/primary_burgundy</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+
         <item name="colorSecondary">@color/primary_red</item>
+        <item name="colorOnSecondary">@android:color/white</item>
 
         <item name="android:statusBarColor">@color/dark_red</item>
+
+        <item name="materialButtonStyle">@style/AppButtonStyle</item>
+        <item name="materialButtonOutlinedStyle">@style/AppOutlinedButtonStyle</item>
+
+    </style>
+
+    <style name="AppButtonStyle"
+        parent="Widget.Material3.Button">
+
+        <item name="backgroundTint">@color/primary_burgundy</item>
+        <item name="android:textColor">@android:color/white</item>
+
+        <item name="cornerRadius">24dp</item>
+
+    </style>
+
+    <style name="AppOutlinedButtonStyle"
+        parent="Widget.Material3.Button.OutlinedButton">
+
+        <item name="backgroundTint">@android:color/transparent</item>
+        <item name="strokeColor">@color/primary_burgundy</item>
+        <item name="android:textColor">@color/primary_burgundy</item>
+        <item name="cornerRadius">24dp</item>
 
     </style>
 

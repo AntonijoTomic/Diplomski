@@ -1,5 +1,6 @@
 ﻿using DiplomskiAPI.Data;
 using DiplomskiAPI.DTOs;
+using DiplomskiAPI.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +13,12 @@ namespace DiplomskiAPI.Controllers
     public class UsersController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IUser _userService;
 
-        public UsersController(ApplicationDbContext context)
+        public UsersController(ApplicationDbContext context, IUser userService)
         {
             _context = context;
+            _userService = userService;
         }
 
         [HttpGet]
@@ -94,6 +97,32 @@ namespace DiplomskiAPI.Controllers
             }
 
             return Ok(user);
+        }
+
+        [HttpPut("change-password")]
+        [Authorize]
+        public IActionResult ChangePassword(ChangePasswordDto request)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            int userId = int.Parse(userIdClaim!);
+
+            _userService.ChangePassword(userId, request);
+
+            return Ok();
+        }
+
+        [HttpPut("deactivate")]
+        [Authorize]
+        public IActionResult Deactivate()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            int userId = int.Parse(userIdClaim!);
+
+            _userService.DeactivateAccount(userId);
+
+            return Ok();
         }
     }
 }

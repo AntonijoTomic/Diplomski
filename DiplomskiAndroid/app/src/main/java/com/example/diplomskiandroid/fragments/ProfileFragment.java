@@ -23,6 +23,7 @@ import com.example.diplomskiandroid.activities.LoginActivity;
 import com.example.diplomskiandroid.api.ApiClient;
 import com.example.diplomskiandroid.api.DashboardApi;
 import com.example.diplomskiandroid.api.UserApi;
+import com.example.diplomskiandroid.models.ChangePasswordRequest;
 import com.example.diplomskiandroid.models.DashboardSummary;
 import com.example.diplomskiandroid.models.UpdateProfileRequest;
 import com.example.diplomskiandroid.models.UserProfile;
@@ -127,13 +128,9 @@ public class ProfileFragment extends Fragment {
 
         cardEditProfile.setOnClickListener(v -> showEditProfileDialog());
 
-        cardChangePassword.setOnClickListener(v -> {
+        cardChangePassword.setOnClickListener(v -> showChangePasswordDialog());
 
-        });
-
-        cardDeactivateAccount.setOnClickListener(v -> {
-
-        });
+        cardDeactivateAccount.setOnClickListener(v -> showDeactivateAccountDialog());
 
         btnLogout.setOnClickListener(v -> logout());
 
@@ -143,6 +140,69 @@ public class ProfileFragment extends Fragment {
 
         loadDashboardSummary(role);
         return view;
+    }
+
+    private void showDeactivateAccountDialog() {
+
+        Dialog dialog = new Dialog(requireContext());
+        dialog.setContentView(R.layout.dialog_deactivate_account);
+
+        Objects.requireNonNull(dialog.getWindow())
+                .setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+        MaterialButton btnCancel =
+                dialog.findViewById(R.id.btnCancel);
+
+        MaterialButton btnDeactivate =
+                dialog.findViewById(R.id.btnDeactivate);
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        btnDeactivate.setOnClickListener(v -> {
+
+            userApi.deactivateAccount()
+                    .enqueue(new Callback<Void>() {
+
+                        @Override
+                        public void onResponse(Call<Void> call,
+                                               Response<Void> response) {
+
+                            if (!response.isSuccessful()) {
+                                Toast.makeText(
+                                        requireContext(),
+                                        "Deaktivacija nije uspjela.",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+
+                                return;
+                            }
+
+                            dialog.dismiss();
+
+                            Toast.makeText(
+                                    requireContext(),
+                                    "Račun je deaktiviran.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+
+                            logout();
+                        }
+
+                        @Override
+                        public void onFailure(Call<Void> call,
+                                              Throwable t) {
+
+                            Toast.makeText(
+                                    requireContext(),
+                                    "Greška povezivanja.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    });
+
+        });
+
+        dialog.show();
     }
 
     private void showEditProfileDialog() {
@@ -366,5 +426,111 @@ public class ProfileFragment extends Fragment {
 
         startActivity(intent);
         requireActivity().finish();
+    }
+
+    private void showChangePasswordDialog() {
+
+        Dialog dialog = new Dialog(requireContext());
+        dialog.setContentView(R.layout.dialog_change_password);
+
+        Objects.requireNonNull(dialog.getWindow())
+                .setBackgroundDrawable(
+                        new ColorDrawable(Color.TRANSPARENT)
+                );
+
+        TextInputEditText etCurrentPassword =
+                dialog.findViewById(R.id.etCurrentPassword);
+
+        TextInputEditText etNewPassword =
+                dialog.findViewById(R.id.etNewPassword);
+
+        TextInputEditText etConfirmPassword =
+                dialog.findViewById(R.id.etConfirmPassword);
+
+        MaterialButton btnCancel =
+                dialog.findViewById(R.id.btnCancel);
+
+        MaterialButton btnSave =
+                dialog.findViewById(R.id.btnSave);
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        btnSave.setOnClickListener(v -> {
+
+            String currentPassword = etCurrentPassword.getText() == null
+                    ? ""
+                    : etCurrentPassword.getText().toString().trim();
+
+            String newPassword = etNewPassword.getText() == null
+                    ? ""
+                    : etNewPassword.getText().toString().trim();
+
+            String confirmPassword = etConfirmPassword.getText() == null
+                    ? ""
+                    : etConfirmPassword.getText().toString().trim();
+
+            if (currentPassword.isEmpty()) {
+                etCurrentPassword.setError("Unesite trenutnu lozinku.");
+                return;
+            }
+
+            if (newPassword.isEmpty()) {
+                etNewPassword.setError("Unesite novu lozinku.");
+                return;
+            }
+
+            if (confirmPassword.isEmpty()) {
+                etConfirmPassword.setError("Potvrdite novu lozinku.");
+                return;
+            }
+
+            ChangePasswordRequest request =
+                    new ChangePasswordRequest(
+                            currentPassword,
+                            newPassword,
+                            confirmPassword
+                    );
+
+            userApi.changePassword(request)
+                    .enqueue(new Callback<Void>() {
+
+                        @Override
+                        public void onResponse(Call<Void> call,
+                                               Response<Void> response) {
+
+                            if (response.isSuccessful()) {
+
+                                dialog.dismiss();
+
+                                Toast.makeText(
+                                        requireContext(),
+                                        "Lozinka je uspješno promijenjena.",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+
+                            } else {
+
+                                Toast.makeText(
+                                        requireContext(),
+                                        "Promjena lozinke nije uspjela.",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<Void> call,
+                                              Throwable t) {
+
+                            Toast.makeText(
+                                    requireContext(),
+                                    "Greška povezivanja.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    });
+        });
+
+        dialog.show();
     }
 }
