@@ -1,16 +1,16 @@
 package com.example.diplomskiandroid.models;
 
 public class VehicleCreateRequest {
-    private int userId;
-    private String brand;
-    private String model;
-    private int year;
-    private String licensePlate;
-    private String vin;
-    private String fuelType;
-    private int mileage;
-    private String registrationDate;
-    private String note;
+    private final int userId;
+    private final String brand;
+    private final String model;
+    private final int year;
+    private final String licensePlate;
+    private final String vin;
+    private final String fuelType;
+    private final int mileage;
+    private final String registrationDate;
+    private final String note;
 
     public VehicleCreateRequest(int userId, String brand, String model, int year,
                                 String licensePlate, String vin, String fuelType,

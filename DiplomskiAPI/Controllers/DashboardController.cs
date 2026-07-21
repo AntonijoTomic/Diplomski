@@ -1,6 +1,5 @@
 ﻿using System.Security.Claims;
-using DiplomskiAPI.Data;
-using DiplomskiAPI.DTOs;
+using DiplomskiAPI.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,46 +10,33 @@ namespace DiplomskiAPI.Controllers
     [Authorize]
     public class DashboardController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDashboardService _dashboardService;
 
-        public DashboardController(ApplicationDbContext context)
+        public DashboardController(
+            IDashboardService dashboardService)
         {
-            _context = context;
+            _dashboardService = dashboardService;
         }
 
         [HttpGet("summary")]
         public IActionResult GetSummary()
         {
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var role = User.FindFirst(
+                ClaimTypes.Role
+            )?.Value;
+
+            var userIdClaim = User.FindFirst(
+                ClaimTypes.NameIdentifier
+            )?.Value;
 
             if (!int.TryParse(userIdClaim, out int userId))
             {
                 return Unauthorized();
             }
 
-            DashboardSummaryDto dto;
-
-            if (role == "ADMIN")
-            {
-                dto = new DashboardSummaryDto
-                {
-                    VehicleCount = _context.Vehicles.Count(),
-                    ServiceRequestCount = _context.ServiceRequests.Count(),
-                    WorkOrderCount = _context.WorkOrders.Count(),
-                    UserCount = _context.Users.Count()
-                };
-            }
-            else
-            {
-                dto = new DashboardSummaryDto
-                {
-                    VehicleCount = _context.Vehicles.Count(v => v.UserId == userId),
-                    ServiceRequestCount = _context.ServiceRequests.Count(sr => sr.UserId == userId),
-                    WorkOrderCount = _context.WorkOrders.Count(w => w.ServiceRequest.UserId == userId),
-                    UserCount = 0
-                };
-            }
+            var dto = role == "ADMIN"
+                ? _dashboardService.GetAdminSummary()
+                : _dashboardService.GetUserSummary(userId);
 
             return Ok(dto);
         }

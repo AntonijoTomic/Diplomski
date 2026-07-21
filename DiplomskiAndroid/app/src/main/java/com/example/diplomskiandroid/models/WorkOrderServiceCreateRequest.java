@@ -1,10 +1,10 @@
 package com.example.diplomskiandroid.models;
 
 public class WorkOrderServiceCreateRequest {
-    private int workOrderId;
-    private int serviceId;
-    private double hours;
-    private double hourlyRate;
+    private final int workOrderId;
+    private final int serviceId;
+    private final double hours;
+    private final double hourlyRate;
 
     public WorkOrderServiceCreateRequest(int workOrderId, int serviceId, double hours, double hourlyRate) {
         this.workOrderId = workOrderId;

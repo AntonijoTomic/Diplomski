@@ -2,8 +2,8 @@ package com.example.diplomskiandroid.models;
 
 public class WorkOrderUpdateRequest {
 
-    private String diagnosis;
-    private String finalReport;
+    private final String diagnosis;
+    private final String finalReport;
 
     public WorkOrderUpdateRequest(
             String diagnosis,

@@ -57,6 +57,7 @@ builder.Services.AddScoped<IWorkOrderPartItemService, WorkOrderPartItemService>(
 builder.Services.AddScoped<IAiRecommendationService, AiRecommendationService>();
 builder.Services.AddScoped<IUser, UserService>();
 builder.Services.AddScoped<IUserDashboardService, UserDashboardService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

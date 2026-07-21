@@ -2,9 +2,9 @@ package com.example.diplomskiandroid.models;
 
 public class ChangePasswordRequest {
 
-    private String currentPassword;
-    private String newPassword;
-    private String confirmNewPassword;
+    private final String currentPassword;
+    private final String newPassword;
+    private final String confirmNewPassword;
 
     public ChangePasswordRequest(
             String currentPassword,

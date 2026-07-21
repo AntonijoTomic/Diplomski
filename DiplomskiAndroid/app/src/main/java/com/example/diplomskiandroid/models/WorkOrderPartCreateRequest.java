@@ -2,9 +2,9 @@ package com.example.diplomskiandroid.models;
 
 public class WorkOrderPartCreateRequest {
 
-    private int workOrderId;
-    private int partId;
-    private int quantity;
+    private final int workOrderId;
+    private final int partId;
+    private final int quantity;
 
     public WorkOrderPartCreateRequest(int workOrderId,
                                       int partId,

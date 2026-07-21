@@ -1,6 +1,7 @@
 package com.example.diplomskiandroid.fragments;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -78,10 +79,11 @@ public class ProfileFragment extends Fragment {
                 .getClient(requireContext())
                 .create(UserApi.class);
 
+        requireContext();
         SharedPreferences preferences =
                 requireContext().getSharedPreferences(
                         "USER_SESSION",
-                        requireContext().MODE_PRIVATE
+                        Context.MODE_PRIVATE
                 );
 
         txtProfileName.setText(
@@ -306,10 +308,11 @@ public class ProfileFragment extends Fragment {
 
                                         String fullName = firstName + " " + lastName;
 
+                                        requireContext();
                                         requireContext()
                                                 .getSharedPreferences(
                                                         "USER_SESSION",
-                                                        requireContext().MODE_PRIVATE
+                                                        Context.MODE_PRIVATE
                                                 )
                                                 .edit()
                                                 .putString("fullName", fullName)
@@ -405,10 +408,11 @@ public class ProfileFragment extends Fragment {
     }
 
     private void logout() {
+        requireContext();
         requireContext()
                 .getSharedPreferences(
                         "USER_SESSION",
-                        requireContext().MODE_PRIVATE
+                        Context.MODE_PRIVATE
                 )
                 .edit()
                 .clear()
