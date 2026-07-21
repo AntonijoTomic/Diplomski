@@ -1,6 +1,7 @@
 package com.example.diplomskiandroid.activities;
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,6 +25,7 @@ public class LoginActivity extends AppCompatActivity {
     private MaterialButton btnLogin;
 
     private AuthApi authApi;
+    private TextView txtRegister;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +39,15 @@ public class LoginActivity extends AppCompatActivity {
         authApi = ApiClient.getClient(this).create(AuthApi.class);
 
         btnLogin.setOnClickListener(v -> loginUser());
+        txtRegister = findViewById(R.id.txtRegister);
+        txtRegister.setOnClickListener(v -> {
+            Intent intent = new Intent(
+                    LoginActivity.this,
+                    RegisterActivity.class
+            );
+
+            startActivity(intent);
+        });
     }
     private void checkExistingSession() {
         String token = getSharedPreferences("USER_SESSION", MODE_PRIVATE)
