@@ -2,7 +2,9 @@ package com.example.diplomskiandroid.api;
 
 import com.example.diplomskiandroid.models.ChangePasswordRequest;
 import com.example.diplomskiandroid.models.UpdateProfileRequest;
+import com.example.diplomskiandroid.models.UserDashboardResponse;
 import com.example.diplomskiandroid.models.UserProfile;
+
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -23,4 +25,7 @@ public interface UserApi {
 
     @PUT("api/Users/deactivate")
     Call<Void> deactivateAccount();
+
+    @GET("api/Users/dashboard")
+    Call<UserDashboardResponse> getDashboard();
 }

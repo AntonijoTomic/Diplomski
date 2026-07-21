@@ -13,6 +13,11 @@ public class Vehicle {
     private String registrationDate;
     private String note;
     private String createdAt;
+    private String lastServiceDate;
+
+    public String getLastServiceDate() {
+        return lastServiceDate;
+    }
 
     public int getId() { return id; }
     public int getUserId() { return userId; }

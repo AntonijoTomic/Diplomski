@@ -13,6 +13,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.app.DatePickerDialog;
 import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
+
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -238,7 +240,13 @@ public class AddVehicleActivity extends AppCompatActivity {
                 month,
                 day
         );
-        dialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+
+        long todayMillis = System.currentTimeMillis();
+        long oneYearAgoMillis = todayMillis - TimeUnit.DAYS.toMillis(365);
+
+        dialog.getDatePicker().setMaxDate(todayMillis);
+        dialog.getDatePicker().setMinDate(oneYearAgoMillis);
+
         dialog.show();
     }
 

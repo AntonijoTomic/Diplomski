@@ -21,5 +21,6 @@
         public DateTime? RegistrationDate { get; set; }
 
         public string? Note { get; set; }
+        public DateTime? LastServiceDate { get; set; }
     }
 }

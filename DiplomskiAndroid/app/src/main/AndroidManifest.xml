@@ -52,10 +52,7 @@
             android:name=".activities.WorkOrderDetailsActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".activities.WorkOrderPartsActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
+
     </application>
 
 </manifest>

@@ -1,6 +1,7 @@
 ﻿using DiplomskiAPI.Data;
 using DiplomskiAPI.DTOs;
 using DiplomskiAPI.Interfaces;
+using DiplomskiAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,11 +15,13 @@ namespace DiplomskiAPI.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IUser _userService;
+        private readonly IUserDashboardService _userDashboardService;
 
-        public UsersController(ApplicationDbContext context, IUser userService)
+        public UsersController(ApplicationDbContext context, IUser userService, IUserDashboardService userDashboardService)
         {
             _context = context;
             _userService = userService;
+            _userDashboardService= userDashboardService;
         }
 
         [HttpGet]
@@ -123,6 +126,20 @@ namespace DiplomskiAPI.Controllers
             _userService.DeactivateAccount(userId);
 
             return Ok();
+        }
+
+        [HttpGet("dashboard")]
+        [Authorize]
+        public IActionResult GetDashboard()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized();
+
+            var dashboard = _userDashboardService.GetDashboard(int.Parse(userIdClaim));
+
+            return Ok(dashboard);
         }
     }
 }

@@ -2,6 +2,7 @@ using DiplomskiAPI.Configuration;
 using DiplomskiAPI.Data;
 using DiplomskiAPI.Interfaces;
 using DiplomskiAPI.Services;
+using DiplomskiAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -55,6 +56,7 @@ builder.Services.AddScoped<IWorkOrderServiceItemService, WorkOrderServiceItemSer
 builder.Services.AddScoped<IWorkOrderPartItemService, WorkOrderPartItemService>();
 builder.Services.AddScoped<IAiRecommendationService, AiRecommendationService>();
 builder.Services.AddScoped<IUser, UserService>();
+builder.Services.AddScoped<IUserDashboardService, UserDashboardService>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -67,7 +69,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
-var a = (BCrypt.Net.BCrypt.HashPassword("123"));
 app.MapControllers();
 
 app.Run("http://0.0.0.0:5136"); //bez adrese se ne mogu spojiti preko uredaja
