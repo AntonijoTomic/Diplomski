@@ -16,6 +16,7 @@
 
         public string? Note { get; set; }
 
+        public int CurrentMileage { get; set; }
 
     }
 }

@@ -39,7 +39,7 @@ public class AddServiceRequestActivity extends AppCompatActivity {
     private AutoCompleteTextView actVehicle;
     private AutoCompleteTextView actServiceType;
     private AutoCompleteTextView actUrgency;
-
+    private TextInputEditText etCurrentMileage;
     private VehicleApi vehicleApi;
     private TextInputEditText etDesiredDate;
     private TextInputEditText etProblemDescription;
@@ -84,6 +84,7 @@ public class AddServiceRequestActivity extends AppCompatActivity {
         etProblemDescription = findViewById(R.id.etProblemDescription);
         etNote = findViewById(R.id.etNote);
         btnSaveRequest = findViewById(R.id.btnSaveRequest);
+        etCurrentMileage = findViewById(R.id.etCurrentMileage);
 
         btnSaveRequest.setOnClickListener(v -> {
             if (isEditMode) {
@@ -110,7 +111,7 @@ public class AddServiceRequestActivity extends AppCompatActivity {
             btnSaveRequest.setText("Spremi promjene");
             loadRequestForEdit(requestId);
         }
-        loadVehicles();
+
 
         setupDropdowns();
     }
@@ -121,6 +122,17 @@ public class AddServiceRequestActivity extends AppCompatActivity {
         String urgency = actUrgency.getText().toString().trim();
         String desiredDate = etDesiredDate.getText().toString().trim();
         String note = etNote.getText().toString().trim();
+
+        String mileageText = etCurrentMileage.getText().toString().trim();
+
+        if (mileageText.isEmpty()) {
+            Toast.makeText(this,
+                    "Unesite trenutnu kilometražu.",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int currentMileage = Integer.parseInt(mileageText);
 
         SharedPreferences preferences =
                 getSharedPreferences("USER_SESSION", MODE_PRIVATE);
@@ -141,7 +153,8 @@ public class AddServiceRequestActivity extends AppCompatActivity {
                         serviceType,
                         desiredDate,
                         urgency,
-                        note
+                        note,
+                        currentMileage
                 );
 
         serviceRequestApi.updateServiceRequest(requestId, request)
@@ -157,14 +170,24 @@ public class AddServiceRequestActivity extends AppCompatActivity {
                                     "Servisni zahtjev je uspješno ažuriran."
                             );
 
-                        } else {
+                        }  else {
+                        String errorMessage = "Došlo je do greške.";
 
-                            Toast.makeText(
-                                    AddServiceRequestActivity.this,
-                                    "Greška kod ažuriranja.",
-                                    Toast.LENGTH_SHORT
-                            ).show();
+                        try {
+                            if (response.errorBody() != null) {
+                                errorMessage = response.errorBody().string();
+                                errorMessage = errorMessage.replace("\"", "");
+                            }
+                        } catch (Exception e) {
+                            errorMessage = "Greška kod ažuriranja.";
                         }
+
+                        Toast.makeText(
+                                AddServiceRequestActivity.this,
+                                errorMessage,
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
                     }
 
                     @Override
@@ -192,11 +215,15 @@ public class AddServiceRequestActivity extends AppCompatActivity {
 
                     ServiceRequest request = response.body();
 
+
                     actServiceType.setText(request.getServiceType(), false);
                     actUrgency.setText(request.getUrgency(), false);
 
                     etProblemDescription.setText(request.getProblemDescription());
                     etNote.setText(request.getNote());
+                    etCurrentMileage.setText(
+                            String.valueOf(request.getVehicle().getMileage())
+                    );
 
                     if (request.getDesiredDate() != null &&
                             request.getDesiredDate().length() >= 10) {
@@ -209,6 +236,7 @@ public class AddServiceRequestActivity extends AppCompatActivity {
                     selectedVehicleId = request.getVehicleId();
                     editVehicleId = request.getVehicleId();
 
+                    loadVehicles();
 
                 } else {
 
@@ -260,6 +288,16 @@ public class AddServiceRequestActivity extends AppCompatActivity {
         String urgency = actUrgency.getText().toString().trim();
         String desiredDate = etDesiredDate.getText().toString().trim();
         String note = etNote.getText().toString().trim();
+        String mileageText = etCurrentMileage.getText().toString().trim();
+
+        if (mileageText.isEmpty()) {
+            Toast.makeText(this,
+                    "Unesite trenutnu kilometražu.",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int currentMileage = Integer.parseInt(mileageText);
 
         if (selectedVehicleId == 0) {
             Toast.makeText(this, "Odaberite vozilo.", Toast.LENGTH_SHORT).show();
@@ -297,8 +335,8 @@ public class AddServiceRequestActivity extends AppCompatActivity {
                 serviceType,
                 desiredDate,
                 urgency,
-                note
-        );
+                note,
+                currentMileage);
 
         btnSaveRequest.setEnabled(false);
 
@@ -309,10 +347,24 @@ public class AddServiceRequestActivity extends AppCompatActivity {
 
                 if (response.isSuccessful()) {
                     showSuccessDialog("Servisni zahtjev je uspješno poslan.");
-                } else {
-                    Toast.makeText(AddServiceRequestActivity.this,
-                            "Greška kod slanja zahtjeva: " + response.code(),
-                            Toast.LENGTH_SHORT).show();
+                }  else {
+                    String errorMessage = "Došlo je do greške.";
+
+                    try {
+                        if (response.errorBody() != null) {
+                            errorMessage = response.errorBody().string();
+
+                            errorMessage = errorMessage.replace("\"", "");
+                        }
+                    } catch (Exception e) {
+                        errorMessage = "Greška kod slanja zahtjeva.";
+                    }
+
+                    Toast.makeText(
+                            AddServiceRequestActivity.this,
+                            errorMessage,
+                            Toast.LENGTH_LONG
+                    ).show();
                 }
             }
 
@@ -424,7 +476,14 @@ public class AddServiceRequestActivity extends AppCompatActivity {
                         }
                     }
                     actVehicle.setOnItemClickListener((parent, view, position, id) -> {
-                        selectedVehicleId = vehicles.get(position).getId();
+
+                        Vehicle selectedVehicle = vehicles.get(position);
+
+                        selectedVehicleId = selectedVehicle.getId();
+
+                        etCurrentMileage.setText(
+                                String.valueOf(selectedVehicle.getMileage())
+                        );
                     });
                 }
             }

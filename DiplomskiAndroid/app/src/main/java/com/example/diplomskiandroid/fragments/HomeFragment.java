@@ -58,7 +58,12 @@ public class HomeFragment extends Fragment {
 
     public HomeFragment() {
     }
+    @Override
+    public void onResume() {
+        super.onResume();
 
+        loadDashboard();
+    }
     @Override
     public View onCreateView(
             LayoutInflater inflater,

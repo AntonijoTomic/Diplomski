@@ -3,7 +3,7 @@ package com.example.diplomskiandroid.models;
 public class ServiceRequest {
     private int id;
     private int vehicleId;
-    private String vehicleName;
+
     private String licensePlate;
     private String problemDescription;
     private String serviceType;
@@ -13,12 +13,14 @@ public class ServiceRequest {
     private String note;
     private String desiredDate;
     private User user;
+
     private Vehicle vehicle;
 
 
+
     public int getId() { return id; }
-    public int getVehicleId() { return vehicleId; }
-    public String getVehicleName() { return vehicleName; }
+    public int getVehicleId() {  return vehicle != null ? vehicle.getId() : vehicleId; }
+
     public String getLicensePlate() { return licensePlate; }
     public String getProblemDescription() { return problemDescription; }
     public String getServiceType() { return serviceType; }
@@ -29,6 +31,7 @@ public class ServiceRequest {
 
     public String getDesiredDate() {  return desiredDate;  }
     public User getUser() { return user; }
+
 
     public Vehicle getVehicle() { return vehicle; }
 }

@@ -133,6 +133,16 @@ namespace DiplomskiAPI.Services
         }
         public ServiceRequest Create(ServiceRequestCreateDto request)
         {
+            var vehicle = _context.Vehicles.FirstOrDefault(v => v.Id == request.VehicleId);
+
+            if (vehicle == null)
+                throw new Exception("Vozilo nije pronađeno.");
+
+            if (request.CurrentMileage < vehicle.Mileage)
+                throw new Exception("Unesena kilometraža ne može biti manja od postojeće.");
+
+            vehicle.Mileage = request.CurrentMileage;
+
             var serviceRequest = new ServiceRequest
             {
                 UserId = request.UserId,
@@ -191,12 +201,27 @@ namespace DiplomskiAPI.Services
         public ServiceRequest? Update(int id, ServiceRequestCreateDto request)
         {
             var serviceRequest = _context.ServiceRequests
-         .FirstOrDefault(sr => sr.Id == id);
+                .FirstOrDefault(sr => sr.Id == id);
 
             if (serviceRequest == null)
             {
                 return null;
             }
+
+            var vehicle = _context.Vehicles
+                .FirstOrDefault(v => v.Id == request.VehicleId);
+
+            if (vehicle == null)
+            {
+                throw new Exception("Vozilo nije pronađeno.");
+            }
+
+            if (request.CurrentMileage < vehicle.Mileage)
+            {
+                throw new Exception("Unesena kilometraža ne može biti manja od postojeće.");
+            }
+
+            vehicle.Mileage = request.CurrentMileage;
 
             serviceRequest.UserId = request.UserId;
             serviceRequest.VehicleId = request.VehicleId;
@@ -210,6 +235,6 @@ namespace DiplomskiAPI.Services
 
             return serviceRequest;
         }
-    
+
     }
 }

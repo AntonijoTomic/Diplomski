@@ -9,6 +9,7 @@ public class ServiceRequestCreateRequest {
     private String desiredDate;
     private String urgency;
     private String note;
+    private int currentMileage;
 
     public ServiceRequestCreateRequest(int userId,
                                        int vehicleId,
@@ -16,7 +17,8 @@ public class ServiceRequestCreateRequest {
                                        String serviceType,
                                        String desiredDate,
                                        String urgency,
-                                       String note) {
+                                       String note,
+                                       int currentMileage) {
         this.userId = userId;
         this.vehicleId = vehicleId;
         this.problemDescription = problemDescription;
@@ -24,5 +26,6 @@ public class ServiceRequestCreateRequest {
         this.desiredDate = desiredDate;
         this.urgency = urgency;
         this.note = note;
+        this.currentMileage = currentMileage;
     }
 }

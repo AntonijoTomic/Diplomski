@@ -45,8 +45,15 @@ namespace DiplomskiAPI.Controllers
         [HttpPost]
         public IActionResult Create(ServiceRequestCreateDto request)
         {
-            var createdRequest = _serviceRequestService.Create(request);
-            return Ok(createdRequest);
+            try
+            {
+                var createdRequest = _serviceRequestService.Create(request);
+                return Ok(createdRequest);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{id}/status")]
@@ -84,14 +91,21 @@ namespace DiplomskiAPI.Controllers
         [HttpPut("{id}")]
         public IActionResult Update(int id, ServiceRequestCreateDto request)
         {
-            var updatedRequest = _serviceRequestService.Update(id, request);
-
-            if (updatedRequest == null)
+            try
             {
-                return NotFound("Servisni zahtjev nije pronađen.");
-            }
+                var updatedRequest = _serviceRequestService.Update(id, request);
 
-            return Ok(updatedRequest);
+                if (updatedRequest == null)
+                {
+                    return NotFound("Servisni zahtjev nije pronađen.");
+                }
+
+                return Ok(updatedRequest);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 
