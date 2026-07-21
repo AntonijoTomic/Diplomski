@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.diplomskiandroid.R;
 import com.example.diplomskiandroid.adapters.AdminServiceRequestAdapter;
-import com.example.diplomskiandroid.adapters.ServiceRequestAdapter;
 import com.example.diplomskiandroid.api.ApiClient;
 import com.example.diplomskiandroid.api.ServiceRequestApi;
 import com.example.diplomskiandroid.models.ServiceRequest;

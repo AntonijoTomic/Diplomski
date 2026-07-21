@@ -110,6 +110,8 @@ public class AddServiceRequestActivity extends AppCompatActivity {
             txtAddRequestTitle.setText("Uredi servisni zahtjev");
             btnSaveRequest.setText("Spremi promjene");
             loadRequestForEdit(requestId);
+        }else {
+            loadVehicles();
         }
 
 
