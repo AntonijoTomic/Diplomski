@@ -1,5 +1,6 @@
 package com.example.diplomskiandroid.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +15,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.diplomskiandroid.MainActivity;
 import com.example.diplomskiandroid.R;
+import com.example.diplomskiandroid.activities.AdminPartActivity;
 import com.example.diplomskiandroid.adapters.LowStockPartAdapter;
 import com.example.diplomskiandroid.api.ApiClient;
 import com.example.diplomskiandroid.api.DashboardApi;
@@ -26,6 +29,7 @@ import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.google.android.material.card.MaterialCardView;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -36,19 +40,13 @@ import java.util.List;
 import java.util.Locale;
 public class AdminDashboardFragment extends Fragment {
 
-    private TextView txtUserCount;
-    private TextView txtVehicleCount;
-    private TextView txtServiceRequestCount;
-    private TextView txtWorkOrderCount;
-    private TextView txtPendingRequestCount;
-    private TextView txtApprovedRequestCount;
-    private TextView txtCurrentMonthRevenue;
-    private TextView txtLowStockSummaryCount;
-    private TextView txtRevenueTotal;
-    private TextView txtLowStockCount;
+    private TextView txtUserCount, txtVehicleCount, txtServiceRequestCount, txtWorkOrderCount,txtViewAllParts,
+            txtPendingRequestCount, txtApprovedRequestCount, txtCurrentMonthRevenue, txtLowStockSummaryCount,txtRevenueTotal, txtLowStockCount;
     private DashboardApi dashboardApi;
     private BarChart barChartRevenue;
     private RecyclerView rvLowStockParts;
+    private MaterialCardView   cardServiceRequests, cardWorkOrders,
+            cardPendingRequests, cardApprovedRequests, cardLowStockSummary;
 
     public AdminDashboardFragment() {
     }
@@ -96,6 +94,7 @@ public class AdminDashboardFragment extends Fragment {
                 view.findViewById(R.id.txtRevenueTotal);
         txtLowStockCount =
                 view.findViewById(R.id.txtLowStockCount);
+        txtViewAllParts = view.findViewById(R.id.txtViewAllParts);
 
         dashboardApi = ApiClient
                 .getClient(requireContext())
@@ -104,7 +103,48 @@ public class AdminDashboardFragment extends Fragment {
                 view.findViewById(R.id.chartRevenue);
         rvLowStockParts = view.findViewById(R.id.rvLowStockParts);
         rvLowStockParts.setLayoutManager(new LinearLayoutManager(getContext()));
+
+
+        cardServiceRequests = view.findViewById(R.id.cardServiceRequests);
+        cardWorkOrders = view.findViewById(R.id.cardWorkOrders);
+        cardPendingRequests = view.findViewById(R.id.cardPendingRequests);
+        cardApprovedRequests = view.findViewById(R.id.cardApprovedRequests);
+        cardLowStockSummary = view.findViewById(R.id.cardLowStockSummary);
+        txtViewAllParts.setOnClickListener(v -> {
+
+            Intent intent = new Intent(requireContext(), AdminPartActivity.class);
+            startActivity(intent);
+
+        });
+
+        cardServiceRequests.setOnClickListener(v ->
+                ((MainActivity) requireActivity()).openAdminRequests(null)
+        );
+
+        cardPendingRequests.setOnClickListener(v ->
+                ((MainActivity) requireActivity()).openAdminRequests("PENDING")
+        );
+
+        cardApprovedRequests.setOnClickListener(v ->
+                ((MainActivity) requireActivity()).openAdminRequests("IN_PROGRESS")
+        );
+        cardWorkOrders.setOnClickListener(v ->
+                ((MainActivity) requireActivity()).openAdminPage(2)
+        );
+        cardLowStockSummary.setOnClickListener(v -> {
+            Intent intent = new Intent(
+                    requireContext(),
+                    AdminPartActivity.class
+            );
+
+            intent.putExtra("showLowStock", true);
+
+            startActivity(intent);
+        });
+
     }
+
+
 
     @Override
     public void onResume() {

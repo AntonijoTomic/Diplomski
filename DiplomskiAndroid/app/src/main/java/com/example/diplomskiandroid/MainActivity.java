@@ -14,7 +14,8 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager2 viewPager;
     private BottomNavigationView bottomNavigation;
     private String role;
-
+    private String requestStatusFilter;
+    private boolean openingFilteredRequests = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +44,20 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (id == R.id.nav_vehicles) {
+
+                boolean isAdmin =
+                        role.equals("ADMIN")
+                                || role.equals("SERVICER");
+
+                if (isAdmin) {
+
+                    if (!openingFilteredRequests) {
+                        requestStatusFilter = null;
+                    }
+
+                    openingFilteredRequests = false;
+                }
+
                 viewPager.setCurrentItem(1);
                 return true;
             }
@@ -96,5 +111,17 @@ public class MainActivity extends AppCompatActivity {
             bottomNavigation.getMenu().findItem(R.id.nav_requests).setTitle("Nalozi");
             bottomNavigation.getMenu().findItem(R.id.nav_profile).setTitle("Profil");
         }
+    }
+    public void openAdminPage(int position) {
+        viewPager.setCurrentItem(position, true);
+    }
+    public void openAdminRequests(String status) {
+        requestStatusFilter = status;
+        openingFilteredRequests = status != null;
+        viewPager.setCurrentItem(1, true);
+    }
+
+    public String getRequestStatusFilter() {
+        return requestStatusFilter;
     }
 }

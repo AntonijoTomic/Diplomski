@@ -10,12 +10,14 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.diplomskiandroid.MainActivity;
 import com.example.diplomskiandroid.R;
 import com.example.diplomskiandroid.adapters.AdminServiceRequestAdapter;
 import com.example.diplomskiandroid.api.ApiClient;
 import com.example.diplomskiandroid.api.ServiceRequestApi;
 import com.example.diplomskiandroid.models.ServiceRequest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -45,18 +47,23 @@ public class AdminRequestsFragment extends Fragment {
         serviceRequestApi = ApiClient.getClient(requireContext())
                 .create(ServiceRequestApi.class);
 
-        loadRequests();
 
+        loadRequests(null);
         return view;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        loadRequests();
+
+        String statusFilter =
+                ((MainActivity) requireActivity())
+                        .getRequestStatusFilter();
+
+        loadRequests(statusFilter);
     }
 
-    private void loadRequests() {
+    private void loadRequests(String statusFilter) {
 
         serviceRequestApi.getAllRequests().enqueue(new Callback<List<ServiceRequest>>() {
 
@@ -64,10 +71,33 @@ public class AdminRequestsFragment extends Fragment {
             public void onResponse(Call<List<ServiceRequest>> call,
                                    Response<List<ServiceRequest>> response) {
 
-                if (response.isSuccessful() && response.body() != null) {
+                if (response.isSuccessful()
+                        && response.body() != null) {
+
+                    List<ServiceRequest> requests =
+                            response.body();
+
+                    if (statusFilter != null) {
+
+                        List<ServiceRequest> filteredRequests =  new ArrayList<>();
+
+                        for (ServiceRequest request : requests) {
+
+                            if (statusFilter.equalsIgnoreCase(
+                                    request.getStatus()
+                            )) {
+                                filteredRequests.add(request);
+                            }
+                        }
+
+                        requests = filteredRequests;
+                    }
 
                     AdminServiceRequestAdapter adapter =
-                            new AdminServiceRequestAdapter(response.body(), requireContext());
+                            new AdminServiceRequestAdapter(
+                                    requests,
+                                    requireContext()
+                            );
 
                     rvServiceRequests.setAdapter(adapter);
 

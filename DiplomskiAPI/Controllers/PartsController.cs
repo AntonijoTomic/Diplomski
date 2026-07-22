@@ -1,5 +1,5 @@
-﻿using DiplomskiAPI.Data;
-using DiplomskiAPI.DTOs;
+﻿using DiplomskiAPI.DTOs;
+using DiplomskiAPI.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DiplomskiAPI.Controllers
@@ -8,29 +8,36 @@ namespace DiplomskiAPI.Controllers
     [Route("api/[controller]")]
     public class PartsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IPartService _partService;
 
-        public PartsController(ApplicationDbContext context)
+        public PartsController(IPartService partService)
         {
-            _context = context;
+            _partService = partService;
         }
 
         [HttpGet]
         public IActionResult GetAll()
         {
-            var parts = _context.Parts
-                .Select(p => new PartDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Manufacturer = p.Manufacturer,
-                    Price = p.Price,
-                    StockQuantity = p.StockQuantity,
-                    MinimumStock = p.MinimumStock
-                })
-                .ToList();
+            return Ok(_partService.GetAll());
+        }
 
-            return Ok(parts);
+        [HttpPost]
+        public IActionResult Create(PartDto dto)
+        {
+            return Ok(_partService.Create(dto));
+        }
+
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, PartDto dto)
+        {
+            var part = _partService.Update(id, dto);
+
+            if (part == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(part);
         }
     }
 }

@@ -58,6 +58,8 @@ builder.Services.AddScoped<IAiRecommendationService, AiRecommendationService>();
 builder.Services.AddScoped<IUser, UserService>();
 builder.Services.AddScoped<IUserDashboardService, UserDashboardService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IPartService, PartService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
